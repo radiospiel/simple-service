@@ -1,8 +1,3 @@
-# rubocop:disable Metrics/CyclomaticComplexity
-# rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/MethodLength
-# rubocop:disable Metrics/PerceivedComplexity
-
 module Simple::Service
   class Action
   end
@@ -12,11 +7,11 @@ require_relative "./action/comment"
 require_relative "./action/parameter"
 
 module Simple::Service
-  class Action
-    ArgumentError = ::Simple::Service::ArgumentError
+  # rubocop:disable Metrics/AbcSize
 
-    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*"
-    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z")
+  class Action
+    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # :nodoc:
+    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # :nodoc:
 
     # determines all services provided by the +service+ service module.
     def self.enumerate(service:) # :nodoc:
@@ -28,12 +23,20 @@ module Simple::Service
     attr_reader :service
     attr_reader :name
 
+    def full_name
+      "#{service.name}##{name}"
+    end
+
+    def to_s # :nodoc:
+      full_name
+    end
+
     # returns an Array of Parameter structures.
     def parameters
       @parameters ||= Parameter.reflect_on_method(service: service, name: name)
     end
 
-    def initialize(service, name)
+    def initialize(service, name) # :nodoc:
       @service  = service
       @name     = name
 
@@ -65,129 +68,110 @@ module Simple::Service
 
     # build a service_instance and run the action, with arguments constructed from
     # args_hsh and params_hsh.
-    def invoke(args, options)
-      args   ||= {}
-      options ||= {}
-
+    def invoke(*args, **named_args)
       # convert Array arguments into a Hash of named arguments. This is strictly
       # necessary to be able to apply default value-based type conversions. (On
       # the downside this also means we convert an array to a hash and then back
       # into an array. This, however, should only be an issue for CLI based action
       # invocations, because any other use case (that I can think of) should allow
-      # us to provide arguments as a Hash. 
-      if args.is_a?(Array)
-        args = convert_argument_array_to_hash(args)
-      end
+      # us to provide arguments as a Hash.
+      args = convert_argument_array_to_hash(args)
+      named_args = named_args.merge(args)
 
-      # [TODO] Type conversion according to default values.
-      args_ary = build_method_arguments(args, options)
+      invoke2(named_args)
+    end
+
+    # invokes an action with a given +name+ in a service with a Hash of arguments.
+    #
+    # You cannot call this method if the context is not set.
+    def invoke2(args)
+      verify_required_args!(args)
+
+      positionals = build_positional_arguments(args)
+      keywords = build_keyword_arguments(args)
 
       service_instance = Object.new
       service_instance.extend service
-      service_instance.public_send(@name, *args_ary)
+
+      if keywords.empty?
+        service_instance.public_send(@name, *positionals)
+      else
+        # calling this with an empty keywords Hash still raises an ArgumentError
+        # if the target method does not accept arguments.
+        service_instance.public_send(@name, *positionals, **keywords)
+      end
     end
 
     private
 
-    module IndifferentHashEx
-      def self.fetch(hsh, name)
-        missing_key!(name) unless hsh
+    # returns an error if the keywords hash does not define all required keyword arguments.
+    def verify_required_args!(args) # :nodoc:
+      @required_names ||= parameters.select(&:required?).map(&:name)
 
-        hsh.fetch(name.to_sym) do
-          hsh.fetch(name.to_s) do
-            missing_key!(name)
-          end
-        end
-      end
+      missing_parameters = @required_names - args.keys
+      return if missing_parameters.empty?
 
-      def self.key?(hsh, name)
-        return false unless hsh
-
-        hsh.key?(name.to_sym) || hsh.key?(name.to_s)
-      end
-
-      def self.missing_key!(name)
-        raise ArgumentError, "Missing argument in arguments hash: #{name}"
-      end
+      raise ::Simple::Service::MissingArguments.new(self, missing_parameters)
     end
 
-    I = IndifferentHashEx
+    # Enumerating all parameters it puts all named parameters into a Hash
+    # of keyword arguments.
+    def build_keyword_arguments(args)
+      @keyword_names ||= parameters.select(&:keyword?).map(&:name)
 
-    # returns an array of arguments suitable to be sent to the action method.
-    def build_method_arguments(args_hsh, params_hsh)
-      args = []
-      keyword_args = {}
+      keys = @keyword_names & args.keys
+      values = args.fetch_values(*keys)
 
-      parameters.each do |parameter|
-        if parameter.keyword?
-          if I.key?(params_hsh, parameter.name)
-            keyword_args[parameter.name] = I.fetch(params_hsh, parameter.name)
-          end
-        else
-          if parameter.variadic?
-            if I.key?(args_hsh, parameter.name)
-              args.concat(Array(I.fetch(args_hsh, parameter.name)))
-            end
-          else
-            if !parameter.optional? || I.key?(args_hsh, parameter.name)
-              args << I.fetch(args_hsh, parameter.name)
-            end
-          end
-        end
+      Hash[keys.zip(values)]
+    end
+
+    def variadic_parameter
+      return @variadic_parameter if defined? @variadic_parameter
+
+      @variadic_parameter = parameters.detect(&:variadic?)
+    end
+
+    def positional_names
+      @positional_names ||= parameters.select(&:positional?).map(&:name)
+    end
+
+    # Enumerating all parameters it collects all positional parameters into
+    # an Array.
+    def build_positional_arguments(args)
+      positionals = positional_names.each_with_object([]) do |parameter_name, ary|
+        ary << args[parameter_name] if args.key?(parameter_name)
       end
 
-      unless keyword_args.empty?
-        args << keyword_args
+      # A variadic parameter is appended to the positionals array.
+      # It is always optional - but if it exists it must be an Array.
+      if variadic_parameter
+        value = args[variadic_parameter.name]
+        positionals.concat(value) unless value.nil?
       end
 
-      args
+      positionals
     end
 
     def convert_argument_array_to_hash(ary)
-      # enumerate all of the action's anonymous arguments, trying to match them
-      # against the values in +ary+. If afterwards any arguments are still left
-      # in +ary+ they will be assigned to the variadic arguments array, which
-      # - if a variadic parameter is defined in this action - will be added to
-      # the hash as well.
       hsh = {}
-      variadic_parameter_name = nil
 
-      parameters.each do |parameter|
-        next if parameter.keyword?
-        parameter_name = parameter.name
-
-        if parameter.variadic?
-          variadic_parameter_name = parameter_name
-          next
-        end
-
-        if ary.empty? && !parameter.optional?
-          raise ::Simple::Service::ArgumentError, "Missing #{parameter_name} parameter"
-        end
-
-        next if ary.empty?
-
-        hsh[parameter_name] = ary.shift
+      if variadic_parameter
+        hsh[variadic_parameter.name] = []
       end
 
-      # Any arguments are left? Set variadic parameter, if defined, raise an error otherwise.
-      unless ary.empty?
-        unless variadic_parameter_name
-          raise ::Simple::Service::ArgumentError, "Extra parameters: #{ary.map(&:inspect).join(", ")}"
-        end
+      if ary.length > positional_names.length
+        extra_arguments = ary[positional_names.length..-1]
 
-        hsh[variadic_parameter_name] = ary
+        raise ::Simple::Service::ExtraArguments.new(self, extra_arguments) unless variadic_parameter
+
+        hsh[variadic_parameter.name] = extra_arguments
+      end
+
+      ary.zip(positional_names).each do |value, parameter_name|
+        hsh[parameter_name] = value
       end
 
       hsh
-    end
-
-    def full_name
-      "#{service}##{name}"
-    end
-
-    def to_s
-      full_name
     end
   end
 end

@@ -7,10 +7,10 @@ class ::Simple::Service::Action::Parameter
   end
 
   def keyword?
-    [:key, :keyreq].include? @kind
+    [:keyreq, :key].include? @kind
   end
 
-  def anonymous?
+  def positional?
     [:req, :opt].include? @kind
   end
 
@@ -20,10 +20,6 @@ class ::Simple::Service::Action::Parameter
 
   def variadic?
     @kind == :rest
-  end
-
-  def optional?
-    !required?
   end
 
   attr_reader :name

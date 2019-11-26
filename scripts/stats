@@ -1,4 +1,5 @@
 #!/bin/bash
 
-cloc $(find lib/ -name *rb) | grep -E 'Language|Ruby' | sed 's-Language-        -'
+# cloc $(find lib/ -name *rb) | grep -E 'Language|Ruby' | sed 's-Language-        -'
+cloc --by-file --docstring-as-code --quiet --hide-rate $(find lib/ -name *rb)
 printf "\n"

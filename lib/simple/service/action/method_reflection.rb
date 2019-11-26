@@ -16,7 +16,7 @@ module ::Simple::Service::Action::MethodReflection # :nodoc:
     method = service.instance_method(method_id)
     parameters = method.parameters
 
-    # method parameters with a :key mode are optional keyword arguments. We only
+    # method parameters with a :key mode are optional named arguments. We only
     # support defaults for those - if there are none we abort here already.
     keys = parameters.map { |mode, name| name if mode == :key }.compact
     return parameters if keys.empty?
@@ -59,7 +59,7 @@ module ::Simple::Service::Action::MethodReflection # :nodoc:
     # values for these arguments doesn't matter at all.
     args = method.parameters.select { |mode, _name| mode == :req }
 
-    # Add a hash with all required keyword arguments
+    # Add a hash with all required named arguments
     required_keyword_args = method.parameters.each_with_object({}) do |(mode, name), hsh|
       hsh[name] = :anything if mode == :keyreq
     end

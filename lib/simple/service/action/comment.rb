@@ -1,5 +1,5 @@
 # returns the comment for an action
-class ::Simple::Service::Action::Comment
+class ::Simple::Service::Action::Comment # :nodoc:
   attr_reader :short
   attr_reader :full
 
