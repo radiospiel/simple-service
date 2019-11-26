@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cloc $(find lib/ -name *rb) | grep -E 'Language|Ruby' | sed 's-Language-        -'
+printf "\n"

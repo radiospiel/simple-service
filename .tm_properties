@@ -1,0 +1,1 @@
+excludeDirectories = "{_build,coverage,assets/node_modules,node_modules,deps,db,cover,priv/static,storage,github,vendor,arena,}"
