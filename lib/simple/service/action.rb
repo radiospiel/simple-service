@@ -8,6 +8,10 @@ require_relative "./action/parameter"
 
 module Simple::Service
   # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/PerceivedComplexity
+  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable Style/GuardClause
+  # rubocop:disable Metrics/ClassLength
 
   class Action
     IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # :nodoc:
@@ -78,17 +82,17 @@ module Simple::Service
       args = convert_argument_array_to_hash(args)
       named_args = named_args.merge(args)
 
-      invoke2(named_args)
+      invoke2(args: named_args, flags: {})
     end
 
     # invokes an action with a given +name+ in a service with a Hash of arguments.
     #
     # You cannot call this method if the context is not set.
-    def invoke2(args)
-      verify_required_args!(args)
+    def invoke2(args:, flags:)
+      verify_required_args!(args, flags)
 
-      positionals = build_positional_arguments(args)
-      keywords = build_keyword_arguments(args)
+      positionals = build_positional_arguments(args, flags)
+      keywords = build_keyword_arguments(args.merge(flags))
 
       service_instance = Object.new
       service_instance.extend service
@@ -105,10 +109,10 @@ module Simple::Service
     private
 
     # returns an error if the keywords hash does not define all required keyword arguments.
-    def verify_required_args!(args) # :nodoc:
+    def verify_required_args!(args, flags) # :nodoc:
       @required_names ||= parameters.select(&:required?).map(&:name)
 
-      missing_parameters = @required_names - args.keys
+      missing_parameters = @required_names - args.keys - flags.keys
       return if missing_parameters.empty?
 
       raise ::Simple::Service::MissingArguments.new(self, missing_parameters)
@@ -137,22 +141,33 @@ module Simple::Service
 
     # Enumerating all parameters it collects all positional parameters into
     # an Array.
-    def build_positional_arguments(args)
+    def build_positional_arguments(args, flags)
       positionals = positional_names.each_with_object([]) do |parameter_name, ary|
-        ary << args[parameter_name] if args.key?(parameter_name)
+        if args.key?(parameter_name)
+          ary << args[parameter_name]
+        elsif flags.key?(parameter_name)
+          ary << flags[parameter_name]
+        end
       end
 
       # A variadic parameter is appended to the positionals array.
       # It is always optional - but if it exists it must be an Array.
       if variadic_parameter
-        value = args[variadic_parameter.name]
-        positionals.concat(value) unless value.nil?
+        value = if args.key?(variadic_parameter.name)
+                  args[variadic_parameter.name]
+                elsif flags.key?(variadic_parameter.name)
+                  flags[variadic_parameter.name]
+                end
+
+        positionals.concat(value) if value
       end
 
       positionals
     end
 
     def convert_argument_array_to_hash(ary)
+      expect! ary => Array
+
       hsh = {}
 
       if variadic_parameter
@@ -162,9 +177,11 @@ module Simple::Service
       if ary.length > positional_names.length
         extra_arguments = ary[positional_names.length..-1]
 
-        raise ::Simple::Service::ExtraArguments.new(self, extra_arguments) unless variadic_parameter
-
-        hsh[variadic_parameter.name] = extra_arguments
+        if variadic_parameter
+          hsh[variadic_parameter.name] = extra_arguments
+        else
+          raise ::Simple::Service::ExtraArguments.new(self, extra_arguments)
+        end
       end
 
       ary.zip(positional_names).each do |value, parameter_name|

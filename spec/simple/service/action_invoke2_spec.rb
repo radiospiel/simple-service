@@ -16,7 +16,7 @@ describe "Simple::Service.invoke2" do
 
   # a shortcut
   def invoke2!(**hsh)
-    @actual = ::Simple::Service.invoke2(service, action, **hsh)
+    @actual = ::Simple::Service.invoke2(service, action, args: hsh)
     # rescue ::StandardError => e
   rescue ::Simple::Service::ArgumentError => e
     @actual = e

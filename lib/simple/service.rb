@@ -69,11 +69,11 @@ module Simple::Service
   # invokes an action with a given +name+ in a service with a Hash of arguments.
   #
   # You cannot call this method if the context is not set.
-  def self.invoke2(service, name, **args)
+  def self.invoke2(service, name, args: {}, flags: {})
     args.each { |key, _| expect! key => Symbol }
     raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke" unless context
 
-    action(service, name).invoke2(**args)
+    action(service, name).invoke2(args: args, flags: flags)
   end
 
   module ClassMethods # :nodoc:
