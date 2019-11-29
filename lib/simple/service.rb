@@ -70,7 +70,6 @@ module Simple::Service
   #
   # You cannot call this method if the context is not set.
   def self.invoke2(service, name, args: {}, flags: {})
-    args.each { |key, _| expect! key => Symbol }
     raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke" unless context
 
     action(service, name).invoke2(args: args, flags: flags)

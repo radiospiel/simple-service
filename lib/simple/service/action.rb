@@ -5,6 +5,7 @@ end
 
 require_relative "./action/comment"
 require_relative "./action/parameter"
+require_relative "./action/indie_hash"
 
 module Simple::Service
   # rubocop:disable Metrics/AbcSize
@@ -89,6 +90,12 @@ module Simple::Service
     #
     # You cannot call this method if the context is not set.
     def invoke2(args:, flags:)
+      # args and flags are being stringified. This is necessary to not allow any
+      # unchecked input to DOS this process by just providing always changing
+      # key values.
+      args = IndieHash.new(args)
+      flags = IndieHash.new(flags)
+
       verify_required_args!(args, flags)
 
       positionals = build_positional_arguments(args, flags)
@@ -110,7 +117,7 @@ module Simple::Service
 
     # returns an error if the keywords hash does not define all required keyword arguments.
     def verify_required_args!(args, flags) # :nodoc:
-      @required_names ||= parameters.select(&:required?).map(&:name)
+      @required_names ||= parameters.select(&:required?).map(&:name).map(&:to_s)
 
       missing_parameters = @required_names - args.keys - flags.keys
       return if missing_parameters.empty?
@@ -121,12 +128,14 @@ module Simple::Service
     # Enumerating all parameters it puts all named parameters into a Hash
     # of keyword arguments.
     def build_keyword_arguments(args)
-      @keyword_names ||= parameters.select(&:keyword?).map(&:name)
+      @keyword_names ||= parameters.select(&:keyword?).map(&:name).map(&:to_s)
 
       keys = @keyword_names & args.keys
       values = args.fetch_values(*keys)
 
-      Hash[keys.zip(values)]
+      # Note that +keys+ now only contains names of keyword arguments that actually exist.
+      # This is therefore not a way to DOS this process.
+      Hash[keys.map(&:to_sym).zip(values)]
     end
 
     def variadic_parameter
