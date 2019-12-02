@@ -32,7 +32,7 @@ module Simple::Service
   # Also, once a value is set in the context it is not possible to change or
   # unset it.
   class Context
-    def initialize(hsh = {}) # :nodoc:
+    def initialize(hsh = {}) # @private
       @hsh = hsh
     end
 
@@ -52,9 +52,9 @@ module Simple::Service
 
     private
 
-    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # :nodoc:
-    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # :nodoc:
-    ASSIGNMENT_REGEXP = Regexp.compile("\\A(#{IDENTIFIER_PATTERN})=\\z") # :nodoc:
+    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # @private
+    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # @private
+    ASSIGNMENT_REGEXP = Regexp.compile("\\A(#{IDENTIFIER_PATTERN})=\\z") # @private
 
     def method_missing(sym, *args, &block)
       raise ArgumentError, "Block given" if block

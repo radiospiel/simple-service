@@ -15,11 +15,11 @@ module Simple::Service
   # rubocop:disable Metrics/ClassLength
 
   class Action
-    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # :nodoc:
-    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # :nodoc:
+    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # @private
+    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # @private
 
     # determines all services provided by the +service+ service module.
-    def self.enumerate(service:) # :nodoc:
+    def self.enumerate(service:) # @private
       service.public_instance_methods(false)
              .grep(IDENTIFIER_REGEXP)
              .each_with_object({}) { |name, hsh| hsh[name] = Action.new(service, name) }
@@ -32,7 +32,7 @@ module Simple::Service
       "#{service.name}##{name}"
     end
 
-    def to_s # :nodoc:
+    def to_s # @private
       full_name
     end
 
@@ -41,7 +41,7 @@ module Simple::Service
       @parameters ||= Parameter.reflect_on_method(service: service, name: name)
     end
 
-    def initialize(service, name) # :nodoc:
+    def initialize(service, name) # @private
       @service  = service
       @name     = name
 
@@ -116,7 +116,7 @@ module Simple::Service
     private
 
     # returns an error if the keywords hash does not define all required keyword arguments.
-    def verify_required_args!(args, flags) # :nodoc:
+    def verify_required_args!(args, flags) # @private
       @required_names ||= parameters.select(&:required?).map(&:name).map(&:to_s)
 
       missing_parameters = @required_names - args.keys - flags.keys

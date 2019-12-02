@@ -1,8 +1,8 @@
-module Simple # :nodoc:
+module Simple # @private
 end
 
 module Simple::Service
-  module GemHelper # :nodoc:
+  module GemHelper # @private
     extend self
 
     def version(name)

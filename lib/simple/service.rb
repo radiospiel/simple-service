@@ -1,4 +1,4 @@
-module Simple # :nodoc:
+module Simple # @private
 end
 
 require "expectation"
@@ -8,15 +8,43 @@ require_relative "service/action"
 require_relative "service/context"
 require_relative "service/version"
 
-# The Simple::Service module.
+# The Simple::Service interface
 #
-# To mark a target module as a service module one must include the
-# Simple::Service module into the target module.
+# This module implements the main API of the Simple::Service ruby gem.
 #
-# This serves as a marker that this module is actually intended
-# to be used as a service.
+# 1. <em>Marking a service module:</em> To turn a target module as a service module one must include <tt>Simple::Service</tt>
+#    into the target. This serves as a marker that this module is actually intended
+#    to provide one or more services. Example:
+#
+#     module GodMode
+#       include Simple::Service
+#     
+#       # Build a universe.
+#       #
+#       # This comment will become part of the full description of the
+#       # "build_universe" service
+#       def build_universe(name, c: , pi: 3.14, e: 2.781)
+#         # at this point I realize that *I* am not God.
+#     
+#         42 # Best try approach
+#       end
+#     end
+#
+# 2. <em>Discover services:</em> To discover services in a service module use the #actions method. This returns a Hash
+#    of actions. [TODO] why a Hash?
+#
+#     Simple::Service.actions(GodMode)
+#     => {:build_universe=>#<Simple::Service::Action...>, ...}
+#
+# 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke</tt> or <tt>Simple::Service.invoke2</tt>. You must set a context first. 
+#
+#     Simple::Service.with_context do
+#       Simple::Service.invoke(GodMode, :build_universe, "TestWorld", c: 1e9)
+#     end
+#     => 42
+#
 module Simple::Service
-  def self.included(klass) # :nodoc:
+  def self.included(klass) # @private
     klass.extend ClassMethods
   end
 
@@ -25,7 +53,7 @@ module Simple::Service
     service.is_a?(Module) && service.include?(self)
   end
 
-  def self.verify_service!(service) # :nodoc:
+  def self.verify_service!(service) # @private
     raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, but is not even a Module" unless service.is_a?(Module)
     raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service?(service)
   end
@@ -75,7 +103,7 @@ module Simple::Service
     action(service, name).invoke2(args: args, flags: flags)
   end
 
-  module ClassMethods # :nodoc:
+  module ClassMethods # @private
     # returns a Hash of actions provided by the service module.
     def __simple_service_actions__
       @__simple_service_actions__ ||= Action.enumerate(service: self)

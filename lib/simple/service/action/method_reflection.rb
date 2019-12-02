@@ -1,6 +1,6 @@
 # rubocop:disable Metrics/AbcSize
 
-module ::Simple::Service::Action::MethodReflection # :nodoc:
+module ::Simple::Service::Action::MethodReflection # @private
   extend self
 
   #

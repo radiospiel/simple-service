@@ -1,5 +1,4 @@
 coverage
-rdoc
 pkg
 log/*.log
 .rspec.data
@@ -10,3 +9,4 @@ Gemfile.lock
 tmp
 .byebug_history
 .bundle/config
+.yardoc
