@@ -32,8 +32,8 @@ module Simple::Service
   # Also, once a value is set in the context it is not possible to change or
   # unset it.
   class Context
-    def initialize(hsh = {}) # @private
-      @hsh = hsh
+    def initialize(hsh = nil) # @private
+      @hsh = hsh || {}
     end
 
     # returns a new Context object, which merges the values in the +overlay+

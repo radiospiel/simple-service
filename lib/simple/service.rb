@@ -8,7 +8,7 @@ require_relative "service/action"
 require_relative "service/context"
 require_relative "service/version"
 
-# The Simple::Service interface
+# <b>The Simple::Service interface</b>
 #
 # This module implements the main API of the Simple::Service ruby gem.
 #
@@ -49,13 +49,19 @@ module Simple::Service
   end
 
   # returns true if the passed in object is a service module.
+  #
+  # A service must be a module, and it must include the Simple::Service module.
   def self.service?(service)
-    service.is_a?(Module) && service.include?(self)
+    verify_service! service
+    true
+  rescue ::ArgumentError
+    false
   end
 
+  # Raises an error if the passed in object is not a service
   def self.verify_service!(service) # @private
     raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, but is not even a Module" unless service.is_a?(Module)
-    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service?(service)
+    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service.include?(self)
   end
 
   # returns a Hash with all actions in the +service+ module
@@ -75,11 +81,15 @@ module Simple::Service
 
   # invokes an action with a given +name+ in a service with +arguments+ and +params+.
   #
-  # You cannot call this method if the context is not set.
+  # When calling +invoke+ using positional arguments (i.e. non-keyword arguments)
+  # they will be matched against positional arguments of the invoked method - 
+  # but they will not be matched against named arguments.
   #
-  # When calling #invoke using positional arguments they will be matched against
-  # positional arguments of the invoked method - but they will not be matched
-  # against named arguments.
+  # In other words: if the service implements an action "def foo(bar, baz:)", one can
+  # run it via
+  #
+  # - +Service.invoke("bar-value", baz: "baz-value")+, or via
+  # - +Service.invoke(bar: "bar-value", baz: "baz-value")+  
   #
   # When there are not enough positional arguments to match the number of required
   # positional arguments of the method we raise an ArgumentError.
@@ -87,7 +97,9 @@ module Simple::Service
   # When there are more positional arguments provided than the number accepted
   # by the method we raise an ArgumentError.
   #
-  # Entries in the named_args Hash that are not defined in the action itself are ignored.
+  # Entries in the +named_args+ Hash that are not defined in the action itself are ignored.
+  #
+  # *Note:* You cannot call this method if the context is not set.
   def self.invoke(service, name, *args, **named_args)
     raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke" unless context
 
