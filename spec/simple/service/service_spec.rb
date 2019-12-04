@@ -1,5 +1,7 @@
 require "spec_helper"
 
+# rubocop:disable Style/WordArray
+
 describe "Simple::Service" do
   context "when running against a NoService module" do
     let(:service) { NoServiceModule }
@@ -76,7 +78,7 @@ describe "Simple::Service" do
     end
   end
 
-  describe '.invoke3' do
+  describe ".invoke3" do
     def invoke3
       Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
     end
@@ -146,11 +148,11 @@ describe "Simple::Service" do
     it "calls Action#invoke with the right arguments" do
       expected = ["bar-value", "baz-value"]
       ::Simple::Service.with_context do
-      expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
-      expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
-      expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
-      expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
-    end
+        expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
+        expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
+        expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
+        expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
+      end
     end
   end
 end
