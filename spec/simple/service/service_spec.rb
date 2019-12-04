@@ -22,10 +22,10 @@ describe "Simple::Service" do
       end
     end
 
-    describe ".invoke" do
+    describe ".invoke3" do
       it "raises an argument error" do
         ::Simple::Service.with_context do
-          expect { Simple::Service.invoke(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
+          expect { Simple::Service.invoke3(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
         end
       end
     end
@@ -76,9 +76,10 @@ describe "Simple::Service" do
     end
   end
 
-  describe ".invoke" do
-    let(:positionals) { { a: "my_a", b: "my_b" } }
-    let(:named) { { d: "my_d" } }
+  describe '.invoke3' do
+    def invoke3
+      Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
+    end
 
     context "when context is not set" do
       it "raises a ContextMissingError" do
@@ -86,20 +87,70 @@ describe "Simple::Service" do
         expect(action).not_to receive(:invoke)
 
         expect do
-          Simple::Service.invoke(service, :service1, *positionals, named_args: named)
+          invoke3
         end.to raise_error(::Simple::Service::ContextMissingError)
       end
     end
 
-    context "when context is not set" do
-      it "properly delegates call to action object" do
+    context "when context is set" do
+      it "calls Action#invoke with the right arguments" do
         action = Simple::Service.actions(service)[:service1]
-        expect(action).to receive(:invoke).with(*positionals, named_args: named)
+        expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
 
         ::Simple::Service.with_context do
-          Simple::Service.invoke(service, :service1, *positionals, named_args: named)
+          invoke3
         end
       end
+    end
+  end
+
+  describe ".invoke" do
+    context "with a args array" do
+      def invoke
+        Simple::Service.invoke(service, :service1, args: ["my_a", "my_b"], flags: { "d" => "my_d" })
+      end
+
+      context "when context is not set" do
+        it "raises a ContextMissingError" do
+          action = Simple::Service.actions(service)[:service1]
+          expect(action).not_to receive(:invoke)
+
+          expect do
+            invoke
+          end.to raise_error(::Simple::Service::ContextMissingError)
+        end
+      end
+
+      context "when context is set" do
+        it "calls Action#invoke with the right arguments" do
+          action = Simple::Service.actions(service)[:service1]
+          expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
+
+          ::Simple::Service.with_context do
+            invoke
+          end
+        end
+      end
+    end
+  end
+
+  describe "documentation example" do
+    def invoke(*args, **flags)
+      Simple::Service.invoke(SpecTestService, :foo, *args, **flags)
+    end
+
+    def invoke3(*args, **flags)
+      Simple::Service.invoke3(SpecTestService, :foo, *args, **flags)
+    end
+
+    it "calls Action#invoke with the right arguments" do
+      expected = ["bar-value", "baz-value"]
+      ::Simple::Service.with_context do
+      expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
+      expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
+    end
     end
   end
 end

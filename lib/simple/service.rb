@@ -18,14 +18,14 @@ require_relative "service/version"
 #
 #     module GodMode
 #       include Simple::Service
-#     
+#
 #       # Build a universe.
 #       #
 #       # This comment will become part of the full description of the
 #       # "build_universe" service
 #       def build_universe(name, c: , pi: 3.14, e: 2.781)
 #         # at this point I realize that *I* am not God.
-#     
+#
 #         42 # Best try approach
 #       end
 #     end
@@ -36,10 +36,10 @@ require_relative "service/version"
 #     Simple::Service.actions(GodMode)
 #     => {:build_universe=>#<Simple::Service::Action...>, ...}
 #
-# 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke</tt> or <tt>Simple::Service.invoke2</tt>. You must set a context first. 
+# 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke3</tt> or <tt>Simple::Service.invoke</tt>. You must set a context first.
 #
 #     Simple::Service.with_context do
-#       Simple::Service.invoke(GodMode, :build_universe, "TestWorld", c: 1e9)
+#       Simple::Service.invoke3(GodMode, :build_universe, "TestWorld", c: 1e9)
 #     end
 #     => 42
 #
@@ -79,17 +79,52 @@ module Simple::Service
     end
   end
 
-  # invokes an action with a given +name+ in a service with +arguments+ and +params+.
+  # invokes an action with a given +name+ in a service with +args+ and +flags+.
   #
-  # When calling +invoke+ using positional arguments (i.e. non-keyword arguments)
-  # they will be matched against positional arguments of the invoked method - 
-  # but they will not be matched against named arguments.
+  # This is a helper method which one can use to easily call an action from
+  # ruby source code.
   #
-  # In other words: if the service implements an action "def foo(bar, baz:)", one can
-  # run it via
+  # As the main purpose of this module is to call services with outside data,
+  # the +.invoke+ action is usually preferred.
   #
-  # - +Service.invoke("bar-value", baz: "baz-value")+, or via
-  # - +Service.invoke(bar: "bar-value", baz: "baz-value")+  
+  # *Note:* You cannot call this method if the context is not set.
+  def self.invoke3(service, name, *args, **flags)
+    flags = flags.each_with_object({}) { |(k, v), hsh| hsh[k.to_s] = v }
+    invoke service, name, args: args, flags: flags
+  end
+
+  # invokes an action with a given +name+.
+  #
+  # This is the general form of invoking a service. It accepts the following
+  # arguments:
+  #
+  # - args: an Array of positional arguments OR a Hash of named arguments.
+  # - flags: a Hash of flags.
+  #
+  # Note that the keys in both the +flags+ and the +args+ Hash must be strings.
+  #
+  # The service is being called with a parameters built out of those like this:
+  #
+  # - The service's positional arguments are being built from the +args+ array
+  #   parameter or from the +named_args+ hash parameter.
+  # - The service's keyword arguments are being built from the +named_args+
+  #   and +flags+ arguments.
+  #
+  # In other words:
+  #
+  # 1. You cannot set both +args+ and +named_args+ at the same time.
+  # 2. The +flags+ arguments are only being used to determine the
+  #    service's keyword parameters.
+  #
+  # So, if the service X implements an action "def foo(bar, baz:)", the following would
+  # all invoke that service:
+  #
+  # - +Service.invoke3(X, :foo, "bar-value", baz: "baz-value")+, or
+  # - +Service.invoke3(X, :foo, bar: "bar-value", baz: "baz-value")+, or
+  # - +Service.invoke(X, :foo, args: ["bar-value"], flags: { "baz" => "baz-value" })+, or
+  # - +Service.invoke(X, :foo, args: { "bar" => "bar-value", "baz" => "baz-value" })+.
+  #
+  # (see spec/service_spec.rb)
   #
   # When there are not enough positional arguments to match the number of required
   # positional arguments of the method we raise an ArgumentError.
@@ -98,21 +133,16 @@ module Simple::Service
   # by the method we raise an ArgumentError.
   #
   # Entries in the +named_args+ Hash that are not defined in the action itself are ignored.
-  #
-  # *Note:* You cannot call this method if the context is not set.
-  def self.invoke(service, name, *args, **named_args)
-    raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke" unless context
 
-    action(service, name).invoke(*args, **named_args)
-  end
+  # <b>Note:</b> You cannot call this method if the context is not set.
+  def self.invoke(service, name, args: {}, flags: {})
+    raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke3" unless context
 
-  # invokes an action with a given +name+ in a service with a Hash of arguments.
-  #
-  # You cannot call this method if the context is not set.
-  def self.invoke2(service, name, args: {}, flags: {})
-    raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke" unless context
+    expect! args => [Hash, Array], flags: Hash
+    args.keys.each { |key| expect! key => String } if args.is_a?(Hash)
+    flags.keys.each { |key| expect! key => String }
 
-    action(service, name).invoke2(args: args, flags: flags)
+    action(service, name).invoke(args: args, flags: flags)
   end
 
   module ClassMethods # @private

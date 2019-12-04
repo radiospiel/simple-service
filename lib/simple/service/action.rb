@@ -5,13 +5,11 @@ end
 
 require_relative "./action/comment"
 require_relative "./action/parameter"
-require_relative "./action/indie_hash"
 
 module Simple::Service
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/PerceivedComplexity
   # rubocop:disable Metrics/CyclomaticComplexity
-  # rubocop:disable Style/GuardClause
   # rubocop:disable Metrics/ClassLength
 
   class Action
@@ -71,30 +69,11 @@ module Simple::Service
       @service.instance_method(name).source_location
     end
 
-    # build a service_instance and run the action, with arguments constructed from
-    # args_hsh and params_hsh.
-    def invoke(*args, **named_args)
-      # convert Array arguments into a Hash of named arguments. This is strictly
-      # necessary to be able to apply default value-based type conversions. (On
-      # the downside this also means we convert an array to a hash and then back
-      # into an array. This, however, should only be an issue for CLI based action
-      # invocations, because any other use case (that I can think of) should allow
-      # us to provide arguments as a Hash.
-      args = convert_argument_array_to_hash(args)
-      named_args = named_args.merge(args)
-
-      invoke2(args: named_args, flags: {})
-    end
-
     # invokes an action with a given +name+ in a service with a Hash of arguments.
     #
     # You cannot call this method if the context is not set.
-    def invoke2(args:, flags:)
-      # args and flags are being stringified. This is necessary to not allow any
-      # unchecked input to DOS this process by just providing always changing
-      # key values.
-      args = IndieHash.new(args)
-      flags = IndieHash.new(flags)
+    def invoke(args:, flags:)
+      args = convert_argument_array_to_hash(args) if args.is_a?(Array)
 
       verify_required_args!(args, flags)
 
@@ -145,7 +124,7 @@ module Simple::Service
     end
 
     def positional_names
-      @positional_names ||= parameters.select(&:positional?).map(&:name)
+      @positional_names ||= parameters.select(&:positional?).map(&:name).map(&:to_s)
     end
 
     # Enumerating all parameters it collects all positional parameters into
@@ -177,25 +156,33 @@ module Simple::Service
     def convert_argument_array_to_hash(ary)
       expect! ary => Array
 
-      hsh = {}
-
-      if variadic_parameter
-        hsh[variadic_parameter.name] = []
-      end
-
-      if ary.length > positional_names.length
+      # +ary* might contain more, less, or the exact number of positional
+      # arguments. If the number is less, we return a hash with only whart
+      # exists in ary - the action might define default values after all.
+      #
+      # If it contains more the action better supports a variadic parameter;
+      # we otherwise raise a ExtraArguments exception.
+      case ary.length <=> positional_names.length
+      when 1  # i.e. ary.length > positional_names.length
         extra_arguments = ary[positional_names.length..-1]
+        ary = ary[0..positional_names.length]
 
-        if variadic_parameter
-          hsh[variadic_parameter.name] = extra_arguments
-        else
+        if !extra_arguments.empty? && !variadic_parameter
           raise ::Simple::Service::ExtraArguments.new(self, extra_arguments)
         end
+
+        existing_positional_names = positional_names
+      when 0  # i.e. ary.length == positional_names.length
+        existing_positional_names = positional_names
+      when -1 # i.e. ary.length < positional_names.length
+        existing_positional_names = positional_names[0, ary.length]
       end
 
-      ary.zip(positional_names).each do |value, parameter_name|
-        hsh[parameter_name] = value
-      end
+      # Build a hash with the existing_positional_names and the values from the array.
+      hsh = Hash[existing_positional_names.zip(ary)]
+
+      # Add the variadic_parameter, if any.
+      hsh[variadic_parameter.name] = extra_arguments if variadic_parameter
 
       hsh
     end

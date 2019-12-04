@@ -36,7 +36,7 @@ class ::Simple::Service::Action::Parameter
     expect! default_value.length => [0, 1]
 
     @kind = kind
-    @name = name
+    @name = name.to_s
     @default_value = default_value[0]
   end
 end

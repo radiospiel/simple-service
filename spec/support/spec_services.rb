@@ -48,3 +48,11 @@ module InvokeTestService
     [a, b, args, e]
   end
 end
+
+module SpecTestService
+  include Simple::Service
+
+  def foo(bar, baz:)
+    [ bar, baz ]
+  end
+end
