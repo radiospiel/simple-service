@@ -98,3 +98,6 @@ Style/DoubleNegation:
 
 Style/ParallelAssignment:
   Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false

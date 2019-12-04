@@ -1,0 +1,3 @@
+lib/simple/service.rb:39:
+   why a Hash? It feels much better if Simple::Service.actions returns an array of names. 
+

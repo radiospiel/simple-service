@@ -31,10 +31,13 @@ require_relative "service/version"
 #     end
 #
 # 2. <em>Discover services:</em> To discover services in a service module use the #actions method. This returns a Hash
-#    of actions. [TODO] why a Hash?
+#    of actions.
 #
 #     Simple::Service.actions(GodMode)
 #     => {:build_universe=>#<Simple::Service::Action...>, ...}
+#
+# TODO: why a Hash? It feels much better if Simple::Service.actions returns an array of names.
+#
 #
 # 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke3</tt> or <tt>Simple::Service.invoke</tt>. You must set a context first.
 #

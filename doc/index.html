@@ -111,7 +111,7 @@
 <p>If the calling site, however, has <strong>named arguments</strong> (in a Hash), one would invoke a service using <code>invoke2</code>. This is used for HTTPD integration (with <code>simple-httpd</code>.)</p>
 
 <pre class="code ruby"><code class="ruby">  <span class='id identifier rubyid_args'>args</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>name:</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>My Universe</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>c:</span> <span class='int'>299792458</span><span class='rbrace'>}</span>
-  <span class='const'><span class='object_link'><a href="Simple.html" title="Simple (module)">Simple</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Simple/Service.html" title="Simple::Service (module)">Service</a></span></span><span class='period'>.</span><span class='id identifier rubyid_invoke2'><span class='object_link'><a href="Simple/Service.html#invoke2-class_method" title="Simple::Service.invoke2 (method)">invoke2</a></span></span> <span class='const'>GodMode</span><span class='comma'>,</span> 
+  <span class='const'><span class='object_link'><a href="Simple.html" title="Simple (module)">Simple</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Simple/Service.html" title="Simple::Service (module)">Service</a></span></span><span class='period'>.</span><span class='id identifier rubyid_invoke2'>invoke2</span> <span class='const'>GodMode</span><span class='comma'>,</span> 
                           <span class='symbol'>:build_universe</span><span class='comma'>,</span> 
                           <span class='label'>args:</span> <span class='id identifier rubyid_args'>args</span>
 </code></pre>
@@ -122,7 +122,7 @@
 
 <pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="Simple.html" title="Simple (module)">Simple</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Simple/Service.html" title="Simple::Service (module)">Service</a></span></span><span class='period'>.</span><span class='id identifier rubyid_with_context'><span class='object_link'><a href="Simple/Service.html#with_context-class_method" title="Simple::Service.with_context (method)">with_context</a></span></span><span class='lparen'>(</span><span class='kw'>nil</span><span class='rparen'>)</span> <span class='kw'>do</span>
     <span class='id identifier rubyid_args'>args</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>name:</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>My Universe</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>c:</span> <span class='int'>299792458</span><span class='rbrace'>}</span>
-    <span class='const'><span class='object_link'><a href="Simple.html" title="Simple (module)">Simple</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Simple/Service.html" title="Simple::Service (module)">Service</a></span></span><span class='period'>.</span><span class='id identifier rubyid_invoke2'><span class='object_link'><a href="Simple/Service.html#invoke2-class_method" title="Simple::Service.invoke2 (method)">invoke2</a></span></span> <span class='const'>GodMode</span><span class='comma'>,</span> 
+    <span class='const'><span class='object_link'><a href="Simple.html" title="Simple (module)">Simple</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Simple/Service.html" title="Simple::Service (module)">Service</a></span></span><span class='period'>.</span><span class='id identifier rubyid_invoke2'>invoke2</span> <span class='const'>GodMode</span><span class='comma'>,</span> 
                             <span class='symbol'>:build_universe</span><span class='comma'>,</span>
                             <span class='label'>args:</span> <span class='id identifier rubyid_args'>args</span>
 <span class='kw'>end</span>
@@ -136,7 +136,7 @@
 </div></div>
 
       <div id="footer">
-  Generated on Tue Dec  3 13:46:26 2019 by
+  Generated on Wed Dec  4 22:57:12 2019 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.20 (ruby-2.5.1).
 </div>

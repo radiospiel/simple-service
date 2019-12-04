@@ -134,7 +134,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(hsh = {})  &#x21d2; Context </a>
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(hsh = nil)  &#x21d2; Context </a>
     
 
     
@@ -190,7 +190,7 @@
     <div class="method_details first">
   <h3 class="signature first" id="initialize-instance_method">
   
-    #<strong>initialize</strong>(hsh = {})  &#x21d2; <tt><span class='object_link'><a href="" title="Simple::Service::Context (class)">Context</a></span></tt> 
+    #<strong>initialize</strong>(hsh = nil)  &#x21d2; <tt><span class='object_link'><a href="" title="Simple::Service::Context (class)">Context</a></span></tt> 
   
 
   
@@ -220,8 +220,8 @@
     <td>
       <pre class="code"><span class="info file"># File 'lib/simple/service/context.rb', line 35</span>
 
-<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_hsh'>hsh</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span> <span class='comment'># @private
-</span>  <span class='ivar'>@hsh</span> <span class='op'>=</span> <span class='id identifier rubyid_hsh'>hsh</span>
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_hsh'>hsh</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span> <span class='comment'># @private
+</span>  <span class='ivar'>@hsh</span> <span class='op'>=</span> <span class='id identifier rubyid_hsh'>hsh</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -369,7 +369,7 @@
 </div>
 
       <div id="footer">
-  Generated on Tue Dec  3 13:46:26 2019 by
+  Generated on Wed Dec  4 22:57:13 2019 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.20 (ruby-2.5.1).
 </div>
