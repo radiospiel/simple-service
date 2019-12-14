@@ -2,6 +2,7 @@ module Simple # @private
 end
 
 require "expectation"
+require "logger"
 
 require_relative "service/errors"
 require_relative "service/action"
@@ -47,8 +48,25 @@ require_relative "service/version"
 #     => 42
 #
 module Simple::Service
+  module ServiceExpectations
+    def expect!(*args, &block)
+      Expectation.expect! *args, &block
+    rescue ::Expectation::Error => ex
+      raise ArgumentError, ex.to_s
+    end
+  end
+
   def self.included(klass) # @private
     klass.extend ClassMethods
+    klass.include ServiceExpectations
+  end
+
+  def self.logger
+    @logger ||= ::Logger.new(STDOUT)
+  end
+
+  def self.logger=(logger)
+    @logger = logger
   end
 
   # returns true if the passed in object is a service module.
