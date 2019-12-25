@@ -50,9 +50,9 @@ require_relative "service/version"
 module Simple::Service
   module ServiceExpectations
     def expect!(*args, &block)
-      Expectation.expect! *args, &block
-    rescue ::Expectation::Error => ex
-      raise ArgumentError, ex.to_s
+      Expectation.expect!(*args, &block)
+    rescue ::Expectation::Error => e
+      raise ArgumentError, e.to_s
     end
   end
 

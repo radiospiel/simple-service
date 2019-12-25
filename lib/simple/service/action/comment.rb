@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/AbcSize
+
 # returns the comment for an action
 class ::Simple::Service::Action::Comment # @private
   attr_reader :short
