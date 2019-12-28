@@ -94,6 +94,8 @@ module Simple::Service
 
   # returns the action with the given name.
   def self.action(service, name)
+    expect! name => Symbol
+
     actions = self.actions(service)
     actions[name] || begin
       raise ::Simple::Service::NoSuchAction.new(service, name)
