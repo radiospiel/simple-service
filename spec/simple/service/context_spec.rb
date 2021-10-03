@@ -35,16 +35,9 @@ describe Simple::Service::Context do
       expect(context).to be_a(Simple::Immutable)
     end
 
-    describe "invalid identifier" do
-      it "raises an error" do
-        expect { context.one! }.to raise_error(NoMethodError)
-        expect { context.oneTwoThree }.to raise_error(NoMethodError)
-      end
-    end
-
     describe "checking for identifier" do
-      it "raises a NoMethodError if the key is invalid" do
-        expect { context.oneTwoThree? }.to raise_error(NoMethodError)
+      it "raises an ArgumentError if the key is invalid" do
+        expect { context.oneTwoThree? }.to raise_error(ArgumentError)
       end
 
       it "returns nil if the key is not set" do
@@ -57,8 +50,9 @@ describe Simple::Service::Context do
     end
 
     describe "fetching identifier" do
-      it "raises a NoMethodError if the key is invalid" do
-        expect { context.oneTwoThree }.to raise_error(NoMethodError)
+      it "raises an ArgumentError if the identifier is invalid" do
+        expect { context.one! }.to raise_error(ArgumentError)
+        expect { context.oneTwoThree }.to raise_error(ArgumentError)
       end
 
       it "raises a NoMethodError if the key is not set" do
@@ -74,7 +68,7 @@ describe Simple::Service::Context do
       context "with symbolized keys" do
         it "sets a value if it does not exist yet" do
           expect(context.two?).to eq(nil)
-          new_context = context.merge(two: 2)
+          new_context = Simple::Service::Context.new({two: 2}, context)
           expect(new_context.two).to eq(2)
 
           # doesn't change the source context
@@ -82,7 +76,7 @@ describe Simple::Service::Context do
         end
 
         it "sets a value if it does exist" do
-          new_context = context.merge(one: 2)
+          new_context = Simple::Service::Context.new({one: 2}, context)
           expect(new_context.one).to eq(2)
 
           # doesn't change the source context
@@ -93,7 +87,7 @@ describe Simple::Service::Context do
       context "with stringified keys" do
         it "sets a value if it does not exist yet" do
           expect(context.two?).to eq(nil)
-          new_context = context.merge("two" => 2)
+          new_context = Simple::Service::Context.new({"two" => 2}, context)
           expect(new_context.two).to eq(2)
 
           # doesn't change the source context
@@ -101,7 +95,7 @@ describe Simple::Service::Context do
         end
 
         it "sets a value if it does exist" do
-          new_context = context.merge("one" => 2)
+          new_context = Simple::Service::Context.new({"one" => 2}, context)
           expect(new_context.one).to eq(2)
 
           # doesn't change the source context

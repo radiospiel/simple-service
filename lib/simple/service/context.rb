@@ -8,9 +8,8 @@ module Simple::Service
   # object afterwards.
   def self.with_context(ctx = nil, &block)
     old_ctx = Thread.current[:"Simple::Service.context"]
-    new_ctx = old_ctx ? old_ctx.merge(ctx) : Context.new(ctx)
 
-    Thread.current[:"Simple::Service.context"] = new_ctx
+    Thread.current[:"Simple::Service.context"] = Context.new(ctx, old_ctx)
 
     block.call
   ensure
@@ -34,50 +33,63 @@ module Simple::Service
   # Also, once a value is set in the context it is not possible to change or
   # unset it.
   class Context < Simple::Immutable
-    def initialize(hsh)
+    SELF = self
+
+    # returns a new Context object.
+    #
+    # Parameters:
+    #
+    # - hsh (Hash or nil): sets values for this context
+    # - previous_context (Context or nil): if +previous_context+ is provided,
+    #   values that are not defined in the \a +hsh+ argument are read from the
+    #   +previous_context+ instead (or the previous context's +previous_context+,
+    #   etc.)
+    def initialize(hsh, previous_context = nil)
       expect! hsh => [Hash, nil]
+      expect! previous_context => [SELF, nil]
 
-      super(hsh ? hsh.transform_keys(&:to_s) : {})
+      hsh = hsh ? hsh.transform_keys(&:to_s) : {}
+
+      @previous_context = previous_context
+      super(hsh)
     end
-
-    # returns a new Context object, which merges the values in the +overlay+
-    # argument (which must be a Hash or nil) with the values in this context.
-    #
-    # The overlay is allowed to change values in the current context.
-    #
-    # It does not change this context.
-    def merge(overlay)
-      # This uses the @hsh private instance variable
-      expect! overlay => [Hash, nil]
-
-      overlay = (overlay ? overlay.transform_keys(&:to_s) : {})
-      new_context_hsh = @hsh.merge(overlay)
-      ::Simple::Service::Context.new(new_context_hsh)
-    end
-
-    private
 
     IDENTIFIER = "[a-z][a-z0-9_]*" # @private
 
     def method_missing(sym, *args, &block)
-      raise ArgumentError, "Block given" if block
+      raise ArgumentError, "#{self.class.name}##{sym}: Block given" if block
+      raise ArgumentError, "#{self.class.name}##{sym}: Extra args" unless args.empty?
 
-      if args.count == 0 && sym =~ /\A(#{IDENTIFIER})(\?)?\z/ && $2
-        @hsh[$1]
-      else
-        super
+      if sym !~ /\A(#{IDENTIFIER})(\?)?\z/
+        raise ArgumentError, "#{self.class.name}: Invalid context key '#{sym}'"
+      end
+
+      @hsh.fetch($1) do
+        # $1 is not defined here..
+
+        # This is an overlayed context?
+        if @previous_context
+          @previous_context.send(sym)
+        elsif $2
+          # +sym+ ends in question mark, i.e. we return +nil+ on missing entries.
+          nil
+        else
+          super
+        end
       end
     end
 
     def respond_to_missing?(sym, include_private = false)
-      case sym
-      when /\A(#{IDENTIFIER})\z/
-        @hsh.key?(sym)
-      when /\A(#{IDENTIFIER})\?\z/
-        true
-      else
-        super
-      end
+      is_defined_here = if sym =~ /\A(#{IDENTIFIER})(\?)\z/
+                          $2 || @hsh.key?(sym)
+                        else
+                          super
+                        end
+
+      return true if is_defined_here
+      return false unless @previous_context
+
+      @previous_context.respond_to_missing?(sym, include_private)
     end
   end
 end
