@@ -18,6 +18,8 @@ module Simple::Service
   end
 end
 
+require "simple-immutable"
+
 module Simple::Service
   # A context object
   #
@@ -31,9 +33,11 @@ module Simple::Service
   #
   # Also, once a value is set in the context it is not possible to change or
   # unset it.
-  class Context
-    def initialize(hsh = nil) # @private
-      @hsh = hsh || {}
+  class Context < Simple::Immutable
+    def initialize(hsh)
+      expect! hsh => [Hash, nil]
+
+      super(hsh ? hsh.transform_keys(&:to_s) : {})
     end
 
     # returns a new Context object, which merges the values in the +overlay+
@@ -43,52 +47,37 @@ module Simple::Service
     #
     # It does not change this context.
     def merge(overlay)
+      # This uses the @hsh private instance variable
       expect! overlay => [Hash, nil]
 
-      overlay ||= {}
+      overlay = (overlay ? overlay.transform_keys(&:to_s) : {})
       new_context_hsh = @hsh.merge(overlay)
       ::Simple::Service::Context.new(new_context_hsh)
     end
 
     private
 
-    IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*" # @private
-    IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z") # @private
-    ASSIGNMENT_REGEXP = Regexp.compile("\\A(#{IDENTIFIER_PATTERN})=\\z") # @private
+    IDENTIFIER = "[a-z][a-z0-9_]*" # @private
 
     def method_missing(sym, *args, &block)
       raise ArgumentError, "Block given" if block
 
-      if args.count == 0 && sym =~ IDENTIFIER_REGEXP
-        self[sym]
-      elsif args.count == 1 && sym =~ ASSIGNMENT_REGEXP
-        self[$1.to_sym] = args.first
+      if args.count == 0 && sym =~ /\A(#{IDENTIFIER})(\?)?\z/ && $2
+        @hsh[$1]
       else
         super
       end
     end
 
     def respond_to_missing?(sym, include_private = false)
-      # :nocov:
-      return true if IDENTIFIER_REGEXP.match?(sym)
-      return true if ASSIGNMENT_REGEXP.match?(sym)
-
-      super
-      # :nocov:
-    end
-
-    def [](key)
-      @hsh[key]
-    end
-
-    def []=(key, value)
-      existing_value = @hsh[key]
-
-      unless existing_value.nil? || existing_value == value
-        raise ::Simple::Service::ContextReadOnlyError, key
+      case sym
+      when /\A(#{IDENTIFIER})\z/
+        @hsh.key?(sym)
+      when /\A(#{IDENTIFIER})\?\z/
+        true
+      else
+        super
       end
-
-      @hsh[key] = value
     end
   end
 end

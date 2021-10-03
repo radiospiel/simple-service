@@ -17,8 +17,9 @@ describe Simple::Service do
         # overwrite value w/nil
         Simple::Service.with_context(a: nil) do
           expect(Simple::Service.context.a).to be_nil
-          Simple::Service.context.a = "c"
-          expect(Simple::Service.context.a).to eq("c")
+          Simple::Service.with_context(a: "c") do
+            expect(Simple::Service.context.a).to eq("c")
+          end
         end
         expect(Simple::Service.context.a).to eq("a")
       end
@@ -29,41 +30,96 @@ describe Simple::Service do
 end
 
 describe Simple::Service::Context do
-  let(:context) { Simple::Service::Context.new }
+  RSpec.shared_examples "context requesting" do
+    it "inherits from Simple::Immutable" do
+      expect(context).to be_a(Simple::Immutable)
+    end
 
-  before do
-    context.one = 1
-  end
+    describe "invalid identifier" do
+      it "raises an error" do
+        expect { context.one! }.to raise_error(NoMethodError)
+        expect { context.oneTwoThree }.to raise_error(NoMethodError)
+      end
+    end
 
-  describe "invalid identifier" do
-    it "raises an error" do
-      expect { context.one! }.to raise_error(NoMethodError)
+    describe "checking for identifier" do
+      it "raises a NoMethodError if the key is invalid" do
+        expect { context.oneTwoThree? }.to raise_error(NoMethodError)
+      end
+
+      it "returns nil if the key is not set" do
+        expect(context.two?).to be_nil
+      end
+
+      it "returns the value if the key is set" do
+        expect(context.one?).to eq 1
+      end
+    end
+
+    describe "fetching identifier" do
+      it "raises a NoMethodError if the key is invalid" do
+        expect { context.oneTwoThree }.to raise_error(NoMethodError)
+      end
+
+      it "raises a NoMethodError if the key is not set" do
+        expect { context.two }.to raise_error(NoMethodError)
+      end
+
+      it "returns the value if the key is set" do
+        expect(context.one).to eq 1
+      end
+    end
+
+    describe "#merge" do
+      context "with symbolized keys" do
+        it "sets a value if it does not exist yet" do
+          expect(context.two?).to eq(nil)
+          new_context = context.merge(two: 2)
+          expect(new_context.two).to eq(2)
+
+          # doesn't change the source context
+          expect(context.two?).to eq(nil)
+        end
+
+        it "sets a value if it does exist" do
+          new_context = context.merge(one: 2)
+          expect(new_context.one).to eq(2)
+
+          # doesn't change the source context
+          expect(context.one).to eq(1)
+        end
+      end
+
+      context "with stringified keys" do
+        it "sets a value if it does not exist yet" do
+          expect(context.two?).to eq(nil)
+          new_context = context.merge("two" => 2)
+          expect(new_context.two).to eq(2)
+
+          # doesn't change the source context
+          expect(context.two?).to eq(nil)
+        end
+
+        it "sets a value if it does exist" do
+          new_context = context.merge("one" => 2)
+          expect(new_context.one).to eq(2)
+
+          # doesn't change the source context
+          expect(context.one).to eq(1)
+        end
+      end
     end
   end
 
-  describe "context reading" do
-    it "returns a value if set" do
-      expect(context.one).to eq(1)
-    end
+  context "with a symbolized context" do
+    let(:context) { Simple::Service::Context.new(one: 1) }
 
-    it "returns nil if not set" do
-      expect(context.two).to be_nil
-    end
+    it_behaves_like "context requesting"
   end
 
-  describe "context writing" do
-    it "sets a value if it does not exist yet" do
-      context.two = 2
-      expect(context.two).to eq(2)
-    end
+  context "with a stringified context" do
+    let(:context) { Simple::Service::Context.new("one" => 1) }
 
-    it "raises a ReadOnly error if the value exists and is not equal" do
-      expect { context.one = 2 }.to raise_error(::Simple::Service::ContextReadOnlyError)
-    end
-
-    it "sets the value if it exists and is equal" do
-      context.one = 1
-      expect(context.one).to eq(1)
-    end
+    it_behaves_like "context requesting"
   end
 end
