@@ -62,7 +62,7 @@ module Simple::Service
   end
 
   def self.logger
-    @logger ||= ::Logger.new(STDOUT)
+    @logger ||= ::Logger.new($stdout)
   end
 
   def self.logger=(logger)
@@ -112,7 +112,7 @@ module Simple::Service
   #
   # *Note:* You cannot call this method if the context is not set.
   def self.invoke3(service, name, *args, **flags)
-    flags = flags.each_with_object({}) { |(k, v), hsh| hsh[k.to_s] = v }
+    flags = flags.transform_keys(&:to_s)
     invoke service, name, args: args, flags: flags
   end
 
@@ -162,8 +162,8 @@ module Simple::Service
     raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke3" unless context
 
     expect! args => [Hash, Array], flags: Hash
-    args.keys.each { |key| expect! key => String } if args.is_a?(Hash)
-    flags.keys.each { |key| expect! key => String }
+    args.each_key { |key| expect! key => String } if args.is_a?(Hash)
+    flags.each_key { |key| expect! key => String }
 
     action(service, name).invoke(args: args, flags: flags)
   end

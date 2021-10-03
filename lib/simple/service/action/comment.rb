@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/AbcSize
-
 # returns the comment for an action
 class ::Simple::Service::Action::Comment # @private
   attr_reader :short
@@ -8,7 +6,7 @@ class ::Simple::Service::Action::Comment # @private
   def self.extract(action:)
     file, line = action.source_location
     lines = Extractor.extract_comment_lines(file: file, before_line: line)
-    full = lines[2..-1].join("\n") if lines.length >= 2
+    full = lines[2..].join("\n") if lines.length >= 2
     new short: lines[0], full: full
   end
 
