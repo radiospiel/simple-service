@@ -54,48 +54,53 @@ module Simple::Service
       expect! hsh => [Hash, nil]
       expect! previous_context => [SELF, nil]
 
-      hsh = hsh ? hsh.transform_keys(&:to_s) : {}
-
       @previous_context = previous_context
-      super(hsh)
+      super(hsh || {})
     end
+
+    private
 
     IDENTIFIER = "[a-z][a-z0-9_]*" # @private
 
     def method_missing(sym, *args, &block)
       raise ArgumentError, "#{self.class.name}##{sym}: Block given" if block
-      raise ArgumentError, "#{self.class.name}##{sym}: Extra args" unless args.empty?
+      raise ArgumentError, "#{self.class.name}##{sym}: Extra args #{args.inspect}" unless args.empty?
 
       if sym !~ /\A(#{IDENTIFIER})(\?)?\z/
         raise ArgumentError, "#{self.class.name}: Invalid context key '#{sym}'"
       end
 
-      @hsh.fetch($1) do
-        # $1 is not defined here..
+      fetch_attribute!($1, raise_when_missing: $2.nil?)
+    end
 
-        # This is an overlayed context?
-        if @previous_context
-          @previous_context.send(sym)
-        elsif $2
-          # +sym+ ends in question mark, i.e. we return +nil+ on missing entries.
-          nil
-        else
-          super
-        end
+    def fetch_attribute!(sym, raise_when_missing:)
+      unless @previous_context
+        return super(sym, raise_when_missing: raise_when_missing)
       end
+
+      first_error = nil
+
+      # check this context first. We catch any NameError, to be able to look up
+      # the attribute also in the previous_context.
+      begin
+        return super(sym, raise_when_missing: true)
+      rescue NameError => e
+        first_error = e
+      end
+
+      # check previous_context
+      begin
+        return @previous_context.fetch_attribute!(sym, raise_when_missing: raise_when_missing)
+      rescue NameError
+        :nop
+      end
+
+      # Not in +self+, not in +previous_context+, and +raise_when_missing+ is true:
+      raise(first_error)
     end
 
     def respond_to_missing?(sym, include_private = false)
-      is_defined_here = if sym =~ /\A(#{IDENTIFIER})(\?)\z/
-                          $2 || @hsh.key?(sym)
-                        else
-                          super
-                        end
-
-      return true if is_defined_here
-      return false unless @previous_context
-
-      @previous_context.respond_to_missing?(sym, include_private)
+      super || @previous_context&.respond_to_missing?(sym, include_private)
     end
   end
 end

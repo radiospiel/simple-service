@@ -22,5 +22,5 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '~> 2.5'
 
   gem.add_dependency "expectation", "~> 1"
-  gem.add_dependency "simple-immutable", "~> 1"
+  gem.add_dependency "simple-immutable", "~> 1", ">= 1.1"
 end

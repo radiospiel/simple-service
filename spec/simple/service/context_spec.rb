@@ -56,7 +56,7 @@ describe Simple::Service::Context do
       end
 
       it "raises a NoMethodError if the key is not set" do
-        expect { context.two }.to raise_error(NoMethodError)
+        expect { context.two }.to raise_error(NameError)
       end
 
       it "returns the value if the key is set" do
