@@ -48,6 +48,9 @@ module Simple::Service
   end
 
   class ContextMissingError < ::StandardError
+    def to_s
+      "Simple::Service.context not initialized; remember to call Simple::Service.with_context/1"
+    end
   end
 
   class ContextReadOnlyError < ::StandardError

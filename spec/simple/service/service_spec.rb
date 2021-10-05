@@ -3,6 +3,8 @@ require "spec_helper"
 # rubocop:disable Style/WordArray
 
 describe "Simple::Service" do
+  include ::Simple::Service::RSpecHelper
+
   context "when running against a NoService module" do
     let(:service) { NoServiceModule }
 
@@ -26,9 +28,7 @@ describe "Simple::Service" do
 
     describe ".invoke3" do
       it "raises an argument error" do
-        ::Simple::Service.with_context do
-          expect { Simple::Service.invoke3(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
-        end
+        expect { Simple::Service.invoke3(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
       end
     end
   end
@@ -84,6 +84,8 @@ describe "Simple::Service" do
     end
 
     context "when context is not set" do
+      let(:current_context) { false }
+
       it "raises a ContextMissingError" do
         action = Simple::Service.actions(service)[:service1]
         expect(action).not_to receive(:invoke)
@@ -99,9 +101,7 @@ describe "Simple::Service" do
         action = Simple::Service.actions(service)[:service1]
         expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
 
-        ::Simple::Service.with_context do
-          invoke3
-        end
+        invoke3
       end
     end
   end
@@ -113,6 +113,8 @@ describe "Simple::Service" do
       end
 
       context "when context is not set" do
+        let(:current_context) { false }
+
         it "raises a ContextMissingError" do
           action = Simple::Service.actions(service)[:service1]
           expect(action).not_to receive(:invoke)
@@ -128,9 +130,7 @@ describe "Simple::Service" do
           action = Simple::Service.actions(service)[:service1]
           expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
 
-          ::Simple::Service.with_context do
-            invoke
-          end
+          invoke
         end
       end
     end
@@ -147,12 +147,11 @@ describe "Simple::Service" do
 
     it "calls Action#invoke with the right arguments" do
       expected = ["bar-value", "baz-value"]
-      ::Simple::Service.with_context do
-        expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
-        expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
-        expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
-        expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
-      end
+
+      expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
+      expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
     end
   end
 end

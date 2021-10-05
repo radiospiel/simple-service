@@ -9,6 +9,10 @@ require_relative "service/action"
 require_relative "service/context"
 require_relative "service/version"
 
+if defined?(RSpec)
+  require_relative "service/rspec_helper"
+end
+
 # <b>The Simple::Service interface</b>
 #
 # This module implements the main API of the Simple::Service ruby gem.
@@ -159,7 +163,9 @@ module Simple::Service
 
   # <b>Note:</b> You cannot call this method if the context is not set.
   def self.invoke(service, name, args: {}, flags: {})
-    raise ContextMissingError, "Need to set context before calling ::Simple::Service.invoke3" unless context
+    # This call to Simple::Service.context raises a ContextMissingError
+    # if the context is not set.
+    _ = ::Simple::Service.context
 
     expect! args => [Hash, Array], flags: Hash
     args.each_key { |key| expect! key => String } if args.is_a?(Hash)

@@ -1,7 +1,7 @@
 module Simple::Service
   # Returns the current context.
   def self.context
-    Thread.current[:"Simple::Service.context"]
+    Thread.current[:"Simple::Service.context"] || raise(ContextMissingError)
   end
 
   # yields a block with a given context, and restores the previous context

@@ -1,7 +1,7 @@
 ENV["RACK_ENV"] = "test"
 ENV["RAILS_ENV"] = "test"
 
-require "byebug"
+require "pry-byebug"
 require "rspec"
 
 require "simplecov"
