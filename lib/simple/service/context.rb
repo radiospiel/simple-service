@@ -9,11 +9,17 @@ module Simple::Service
   def self.with_context(ctx = nil, &block)
     old_ctx = Thread.current[:"Simple::Service.context"]
 
-    Thread.current[:"Simple::Service.context"] = Context.new(ctx, old_ctx)
+    if old_ctx && ctx.nil?
+      block.call
+    else
+      begin
+        Thread.current[:"Simple::Service.context"] = Context.new(ctx, old_ctx)
 
-    block.call
-  ensure
-    Thread.current[:"Simple::Service.context"] = old_ctx
+        block.call
+      ensure
+        Thread.current[:"Simple::Service.context"] = old_ctx
+      end
+    end
   end
 end
 
