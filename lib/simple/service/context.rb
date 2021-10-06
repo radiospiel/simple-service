@@ -45,7 +45,9 @@ module Simple::Service
         raise ArgumentError, "#{self.class.name}: Invalid context key '#{sym}'"
       end
 
+      # rubocop:disable Lint/OutOfRangeRegexpRef
       fetch_attribute!($1, raise_when_missing: $2.nil?)
+      # rubocop:enable Lint/OutOfRangeRegexpRef
     end
 
     def fetch_attribute!(sym, raise_when_missing:)
