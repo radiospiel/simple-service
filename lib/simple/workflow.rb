@@ -11,7 +11,7 @@ end
 module Simple::Workflow
   class ContextMissingError < ::StandardError
     def to_s
-      "Simple::Workflow.context not initialized; remember to call Simple::Workflow.with_context/1"
+      "Simple::Workflow.current_context not initialized; remember to call Simple::Workflow.with_context/1"
     end
   end
 
@@ -21,11 +21,20 @@ module Simple::Workflow
     end
   end
 
+  module InstanceHelperMethods
+    private
+
+    def current_context
+      Simple::Workflow.current_context
+    end
+  end
+
   module ModuleMethods
     def register_workflow(mod)
       expect! mod => Module
 
-      mod.extend HelperMethods
+      mod.extend ::Simple::Workflow::HelperMethods
+      mod.include ::Simple::Workflow::InstanceHelperMethods
       mod.extend mod
       mod.include Simple::Service
     end
@@ -39,9 +48,9 @@ module Simple::Workflow
     end
 
     def invoke(workflow, *args, **kwargs)
-      # This call to Simple::Workflow.context raises a ContextMissingError
+      # This call to Simple::Workflow.current_context raises a ContextMissingError
       # if the context is not set.
-      _ = ::Simple::Workflow.context
+      _ = ::Simple::Workflow.current_context
 
       expect! workflow => [Module, String]
 
@@ -49,7 +58,7 @@ module Simple::Workflow
 
       # We will reload workflow modules only once per invocation.
       if Simple::Workflow.reload_on_invocation?
-        Simple::Workflow.context.reload!(workflow_module)
+        Simple::Workflow.current_context.reload!(workflow_module)
       end
 
       Simple::Service.invoke(workflow_module, :call, args: args, flags: kwargs.transform_keys(&:to_s))

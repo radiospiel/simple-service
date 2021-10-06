@@ -1,34 +1,5 @@
 require "spec_helper"
 
-describe Simple::Workflow do
-  describe ".with_context" do
-    it "merges the current context for the duration of the block" do
-      block_called = false
-
-      Simple::Workflow.with_context(a: "a") do
-        expect(Simple::Workflow.context.a).to eq("a")
-
-        # overwrite value
-        Simple::Workflow.with_context(a: "b") do
-          expect(Simple::Workflow.context.a).to eq("b")
-          block_called = true
-        end
-
-        # overwrite value w/nil
-        Simple::Workflow.with_context(a: nil) do
-          expect(Simple::Workflow.context.a).to be_nil
-          Simple::Workflow.with_context(a: "c") do
-            expect(Simple::Workflow.context.a).to eq("c")
-          end
-        end
-        expect(Simple::Workflow.context.a).to eq("a")
-      end
-
-      expect(block_called).to eq(true)
-    end
-  end
-end
-
 describe Simple::Workflow::Context do
   RSpec.shared_examples "context requesting" do
     it "inherits from Simple::Immutable" do
