@@ -70,28 +70,10 @@ module Simple::Service
     klass.include ServiceExpectations
   end
 
-  def self.logger
-    @logger ||= ::Logger.new($stdout)
-  end
-
-  def self.logger=(logger)
-    @logger = logger
-  end
-
-  # returns true if the passed in object is a service module.
-  #
-  # A service must be a module, and it must include the Simple::Service module.
-  def self.service?(service)
-    verify_service! service
-    true
-  rescue ::ArgumentError
-    false
-  end
-
-  # Raises an error if the passed in object is not a service
+  # Raises an error if the passed in object is not a Simple::Service
   def self.verify_service!(service) # @private
     raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, but is not even a Module" unless service.is_a?(Module)
-    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service.include?(self)
+    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service.include?(::Simple::Service)
   end
 
   # returns a Hash with all actions in the +service+ module

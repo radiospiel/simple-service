@@ -8,12 +8,6 @@ describe "Simple::Service" do
   context "when running against a NoService module" do
     let(:service) { NoServiceModule }
 
-    describe ".service?" do
-      it "returns false on a NoService module" do
-        expect(Simple::Service.service?(service)).to eq(false)
-      end
-    end
-
     describe ".actions" do
       it "raises an argument error" do
         expect { Simple::Service.actions(service) }.to raise_error(ArgumentError)
@@ -35,12 +29,6 @@ describe "Simple::Service" do
 
   # running against a proper service module
   let(:service) { SpecService }
-
-  describe ".service?" do
-    it "returns true" do
-      expect(Simple::Service.service?(service)).to eq(true)
-    end
-  end
 
   describe ".actions" do
     it "returns a Hash of actions on a Service module" do
