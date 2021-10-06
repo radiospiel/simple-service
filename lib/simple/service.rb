@@ -1,6 +1,9 @@
 module Simple # @private
 end
 
+module Simple::Service # @private
+end
+
 require "expectation"
 require "logger"
 
@@ -9,6 +12,7 @@ require_relative "service/action"
 require_relative "service/context"
 require_relative "service/current_context"
 require_relative "service/version"
+require_relative "service/reloader"
 
 if defined?(RSpec)
   require_relative "service/rspec_helper"
