@@ -10,5 +10,7 @@ group :development, :test do
   gem 'rspec', '~> 3.7'
   # gem 'rubocop', '~> 0.61.1'
   gem 'simplecov', '~> 0'
-  gem 'byebug'
+  gem 'pry-byebug'
 end
+
+# gem "simple-immutable", "~> 1", path: "../simple-immutable"

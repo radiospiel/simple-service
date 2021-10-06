@@ -2,8 +2,10 @@ module Simple::Service
   # Will be raised by ::Simple::Service.action.
   class NoSuchAction < ::ArgumentError
     attr_reader :service, :name
+
     def initialize(service, name)
       @service, @name = service, name
+      super()
     end
 
     def to_s
@@ -22,6 +24,7 @@ module Simple::Service
 
     def initialize(action, parameters)
       @action, @parameters = action, parameters
+      super()
     end
 
     def to_s
@@ -35,15 +38,13 @@ module Simple::Service
 
     def initialize(action, arguments)
       @action, @arguments = action, arguments
+      super()
     end
 
     def to_s
       str = @arguments.map(&:inspect).join(", ")
       "#{action}: extra argument(s) #{str}"
     end
-  end
-
-  class ContextMissingError < ::StandardError
   end
 
   class ContextReadOnlyError < ::StandardError

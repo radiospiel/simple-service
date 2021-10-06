@@ -3,14 +3,6 @@
 require "spec_helper"
 
 describe "Simple::Service.invoke3" do
-  # the context to use in the around hook below. By default this is nil -
-  # which gives us an empty context.
-  let(:context) { nil }
-
-  around do |example|
-    ::Simple::Service.with_context(context) { example.run }
-  end
-
   let(:service) { InvokeTestService }
   let(:action)  { nil }
 

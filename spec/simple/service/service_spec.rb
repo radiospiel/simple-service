@@ -6,12 +6,6 @@ describe "Simple::Service" do
   context "when running against a NoService module" do
     let(:service) { NoServiceModule }
 
-    describe ".service?" do
-      it "returns false on a NoService module" do
-        expect(Simple::Service.service?(service)).to eq(false)
-      end
-    end
-
     describe ".actions" do
       it "raises an argument error" do
         expect { Simple::Service.actions(service) }.to raise_error(ArgumentError)
@@ -26,21 +20,13 @@ describe "Simple::Service" do
 
     describe ".invoke3" do
       it "raises an argument error" do
-        ::Simple::Service.with_context do
-          expect { Simple::Service.invoke3(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
-        end
+        expect { Simple::Service.invoke3(service, :service1, {}, {}, context: nil) }.to raise_error(::ArgumentError)
       end
     end
   end
 
   # running against a proper service module
   let(:service) { SpecService }
-
-  describe ".service?" do
-    it "returns true" do
-      expect(Simple::Service.service?(service)).to eq(true)
-    end
-  end
 
   describe ".actions" do
     it "returns a Hash of actions on a Service module" do
@@ -83,26 +69,11 @@ describe "Simple::Service" do
       Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
     end
 
-    context "when context is not set" do
-      it "raises a ContextMissingError" do
-        action = Simple::Service.actions(service)[:service1]
-        expect(action).not_to receive(:invoke)
+    it "calls Action#invoke with the right arguments" do
+      action = Simple::Service.actions(service)[:service1]
+      expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
 
-        expect do
-          invoke3
-        end.to raise_error(::Simple::Service::ContextMissingError)
-      end
-    end
-
-    context "when context is set" do
-      it "calls Action#invoke with the right arguments" do
-        action = Simple::Service.actions(service)[:service1]
-        expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
-
-        ::Simple::Service.with_context do
-          invoke3
-        end
-      end
+      invoke3
     end
   end
 
@@ -112,26 +83,11 @@ describe "Simple::Service" do
         Simple::Service.invoke(service, :service1, args: ["my_a", "my_b"], flags: { "d" => "my_d" })
       end
 
-      context "when context is not set" do
-        it "raises a ContextMissingError" do
-          action = Simple::Service.actions(service)[:service1]
-          expect(action).not_to receive(:invoke)
+      it "calls Action#invoke with the right arguments" do
+        action = Simple::Service.actions(service)[:service1]
+        expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
 
-          expect do
-            invoke
-          end.to raise_error(::Simple::Service::ContextMissingError)
-        end
-      end
-
-      context "when context is set" do
-        it "calls Action#invoke with the right arguments" do
-          action = Simple::Service.actions(service)[:service1]
-          expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
-
-          ::Simple::Service.with_context do
-            invoke
-          end
-        end
+        invoke
       end
     end
   end
@@ -147,12 +103,11 @@ describe "Simple::Service" do
 
     it "calls Action#invoke with the right arguments" do
       expected = ["bar-value", "baz-value"]
-      ::Simple::Service.with_context do
-        expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
-        expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
-        expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
-        expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
-      end
+
+      expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
+      expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
+      expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
     end
   end
 end

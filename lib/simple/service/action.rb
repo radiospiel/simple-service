@@ -1,4 +1,5 @@
 module Simple::Service
+  # rubocop:disable Lint/EmptyClass
   class Action
   end
 end
@@ -114,7 +115,7 @@ module Simple::Service
 
       # Note that +keys+ now only contains names of keyword arguments that actually exist.
       # This is therefore not a way to DOS this process.
-      Hash[keys.map(&:to_sym).zip(values)]
+      keys.map(&:to_sym).zip(values).to_h
     end
 
     def variadic_parameter
@@ -164,7 +165,7 @@ module Simple::Service
       # we otherwise raise a ExtraArguments exception.
       case ary.length <=> positional_names.length
       when 1  # i.e. ary.length > positional_names.length
-        extra_arguments = ary[positional_names.length..-1]
+        extra_arguments = ary[positional_names.length..]
         ary = ary[0..positional_names.length]
 
         if !extra_arguments.empty? && !variadic_parameter
@@ -179,7 +180,7 @@ module Simple::Service
       end
 
       # Build a hash with the existing_positional_names and the values from the array.
-      hsh = Hash[existing_positional_names.zip(ary)]
+      hsh = existing_positional_names.zip(ary).to_h
 
       # Add the variadic_parameter, if any.
       hsh[variadic_parameter.name] = extra_arguments if variadic_parameter

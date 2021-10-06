@@ -1,7 +1,7 @@
 ENV["RACK_ENV"] = "test"
 ENV["RAILS_ENV"] = "test"
 
-require "byebug"
+require "pry-byebug"
 require "rspec"
 
 require "simplecov"
@@ -18,6 +18,7 @@ SimpleCov.start do
 end
 
 require "simple/service"
+require "simple/workflow"
 
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
