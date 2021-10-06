@@ -1,10 +1,10 @@
-module ::Simple::Service::RSpecHelper
+module ::Simple::Workflow::RSpecHelper
   def self.included(base)
     base.let(:current_context) { {} }
 
     base.around do |example|
       if (ctx = current_context)
-        ::Simple::Service.with_context(ctx) do
+        ::Simple::Workflow.with_context(ctx) do
           example.run
         end
       else

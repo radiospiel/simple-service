@@ -9,14 +9,7 @@ require "logger"
 
 require_relative "service/errors"
 require_relative "service/action"
-require_relative "service/context"
-require_relative "service/current_context"
 require_relative "service/version"
-require_relative "service/reloader"
-
-if defined?(RSpec)
-  require_relative "service/rspec_helper"
-end
 
 # <b>The Simple::Service interface</b>
 #
@@ -49,11 +42,9 @@ end
 # TODO: why a Hash? It feels much better if Simple::Service.actions returns an array of names.
 #
 #
-# 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke3</tt> or <tt>Simple::Service.invoke</tt>. You must set a context first.
+# 3. <em>Invoke a service:</em> run <tt>Simple::Service.invoke3</tt> or <tt>Simple::Service.invoke</tt>.
 #
-#     Simple::Service.with_context do
-#       Simple::Service.invoke3(GodMode, :build_universe, "TestWorld", c: 1e9)
-#     end
+#     Simple::Service.invoke3(GodMode, :build_universe, "TestWorld", c: 1e9)
 #     => 42
 #
 module Simple::Service
@@ -72,8 +63,14 @@ module Simple::Service
 
   # Raises an error if the passed in object is not a Simple::Service
   def self.verify_service!(service) # @private
-    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, but is not even a Module" unless service.is_a?(Module)
-    raise ::ArgumentError, "#{service.inspect} must be a Simple::Service, did you 'include Simple::Service'" unless service.include?(::Simple::Service)
+    expect! service => Module
+
+    # rubocop:disable Style/GuardClause
+    unless service.include?(::Simple::Service)
+      raise ::ArgumentError,
+            "#{service.name} is not a Simple::Service, did you 'include Simple::Service'"
+    end
+    # rubocop:enable Style/GuardClause
   end
 
   # returns a Hash with all actions in the +service+ module
@@ -100,8 +97,6 @@ module Simple::Service
   #
   # As the main purpose of this module is to call services with outside data,
   # the +.invoke+ action is usually preferred.
-  #
-  # *Note:* You cannot call this method if the context is not set.
   def self.invoke3(service, name, *args, **flags)
     flags = flags.transform_keys(&:to_s)
     invoke service, name, args: args, flags: flags
@@ -147,13 +142,7 @@ module Simple::Service
   # by the method we raise an ArgumentError.
   #
   # Entries in the +named_args+ Hash that are not defined in the action itself are ignored.
-
-  # <b>Note:</b> You cannot call this method if the context is not set.
   def self.invoke(service, name, args: {}, flags: {})
-    # This call to Simple::Service.context raises a ContextMissingError
-    # if the context is not set.
-    _ = ::Simple::Service.context
-
     expect! args => [Hash, Array], flags: Hash
     args.each_key { |key| expect! key => String } if args.is_a?(Hash)
     flags.each_key { |key| expect! key => String }

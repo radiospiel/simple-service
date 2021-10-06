@@ -3,8 +3,6 @@
 require "spec_helper"
 
 describe "Simple::Service.invoke3" do
-  include ::Simple::Service::RSpecHelper
-
   let(:service) { InvokeTestService }
   let(:action)  { nil }
 

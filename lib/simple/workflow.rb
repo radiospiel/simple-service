@@ -1,6 +1,20 @@
 require "simple/service"
 
+require_relative "workflow/context"
+require_relative "workflow/current_context"
+require_relative "workflow/reloader"
+
+if defined?(RSpec)
+  require_relative "workflow/rspec_helper"
+end
+
 module Simple::Workflow
+  class ContextMissingError < ::StandardError
+    def to_s
+      "Simple::Workflow.context not initialized; remember to call Simple::Workflow.with_context/1"
+    end
+  end
+
   module HelperMethods
     def invoke(*args, **kwargs)
       Simple::Workflow.invoke(self, *args, **kwargs)
@@ -25,13 +39,17 @@ module Simple::Workflow
     end
 
     def invoke(workflow, *args, **kwargs)
+      # This call to Simple::Workflow.context raises a ContextMissingError
+      # if the context is not set.
+      _ = ::Simple::Workflow.context
+
       expect! workflow => [Module, String]
 
       workflow_module = lookup_workflow!(workflow)
 
       # We will reload workflow modules only once per invocation.
       if Simple::Workflow.reload_on_invocation?
-        Simple::Service.context.reload!(workflow_module)
+        Simple::Workflow.context.reload!(workflow_module)
       end
 
       Simple::Service.invoke(workflow_module, :call, args: args, flags: kwargs.transform_keys(&:to_s))

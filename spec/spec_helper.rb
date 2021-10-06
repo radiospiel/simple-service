@@ -18,6 +18,7 @@ SimpleCov.start do
 end
 
 require "simple/service"
+require "simple/workflow"
 
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 

@@ -1,27 +1,27 @@
 require "spec_helper"
 
-describe Simple::Service do
+describe Simple::Workflow do
   describe ".with_context" do
     it "merges the current context for the duration of the block" do
       block_called = false
 
-      Simple::Service.with_context(a: "a") do
-        expect(Simple::Service.context.a).to eq("a")
+      Simple::Workflow.with_context(a: "a") do
+        expect(Simple::Workflow.context.a).to eq("a")
 
         # overwrite value
-        Simple::Service.with_context(a: "b") do
-          expect(Simple::Service.context.a).to eq("b")
+        Simple::Workflow.with_context(a: "b") do
+          expect(Simple::Workflow.context.a).to eq("b")
           block_called = true
         end
 
         # overwrite value w/nil
-        Simple::Service.with_context(a: nil) do
-          expect(Simple::Service.context.a).to be_nil
-          Simple::Service.with_context(a: "c") do
-            expect(Simple::Service.context.a).to eq("c")
+        Simple::Workflow.with_context(a: nil) do
+          expect(Simple::Workflow.context.a).to be_nil
+          Simple::Workflow.with_context(a: "c") do
+            expect(Simple::Workflow.context.a).to eq("c")
           end
         end
-        expect(Simple::Service.context.a).to eq("a")
+        expect(Simple::Workflow.context.a).to eq("a")
       end
 
       expect(block_called).to eq(true)
@@ -29,7 +29,7 @@ describe Simple::Service do
   end
 end
 
-describe Simple::Service::Context do
+describe Simple::Workflow::Context do
   RSpec.shared_examples "context requesting" do
     it "inherits from Simple::Immutable" do
       expect(context).to be_a(Simple::Immutable)
@@ -68,7 +68,7 @@ describe Simple::Service::Context do
       context "with symbolized keys" do
         it "sets a value if it does not exist yet" do
           expect(context.two?).to eq(nil)
-          new_context = Simple::Service::Context.new({two: 2}, context)
+          new_context = Simple::Workflow::Context.new({two: 2}, context)
           expect(new_context.two).to eq(2)
 
           # doesn't change the source context
@@ -76,7 +76,7 @@ describe Simple::Service::Context do
         end
 
         it "sets a value if it does exist" do
-          new_context = Simple::Service::Context.new({one: 2}, context)
+          new_context = Simple::Workflow::Context.new({one: 2}, context)
           expect(new_context.one).to eq(2)
 
           # doesn't change the source context
@@ -87,7 +87,7 @@ describe Simple::Service::Context do
       context "with stringified keys" do
         it "sets a value if it does not exist yet" do
           expect(context.two?).to eq(nil)
-          new_context = Simple::Service::Context.new({"two" => 2}, context)
+          new_context = Simple::Workflow::Context.new({"two" => 2}, context)
           expect(new_context.two).to eq(2)
 
           # doesn't change the source context
@@ -95,7 +95,7 @@ describe Simple::Service::Context do
         end
 
         it "sets a value if it does exist" do
-          new_context = Simple::Service::Context.new({"one" => 2}, context)
+          new_context = Simple::Workflow::Context.new({"one" => 2}, context)
           expect(new_context.one).to eq(2)
 
           # doesn't change the source context
@@ -106,13 +106,13 @@ describe Simple::Service::Context do
   end
 
   context "with a symbolized context" do
-    let(:context) { Simple::Service::Context.new(one: 1) }
+    let(:context) { Simple::Workflow::Context.new(one: 1) }
 
     it_behaves_like "context requesting"
   end
 
   context "with a stringified context" do
-    let(:context) { Simple::Service::Context.new("one" => 1) }
+    let(:context) { Simple::Workflow::Context.new("one" => 1) }
 
     it_behaves_like "context requesting"
   end

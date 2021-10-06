@@ -3,8 +3,6 @@ require "spec_helper"
 # rubocop:disable Style/WordArray
 
 describe "Simple::Service" do
-  include ::Simple::Service::RSpecHelper
-
   context "when running against a NoService module" do
     let(:service) { NoServiceModule }
 
@@ -71,26 +69,11 @@ describe "Simple::Service" do
       Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
     end
 
-    context "when context is not set" do
-      let(:current_context) { false }
+    it "calls Action#invoke with the right arguments" do
+      action = Simple::Service.actions(service)[:service1]
+      expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
 
-      it "raises a ContextMissingError" do
-        action = Simple::Service.actions(service)[:service1]
-        expect(action).not_to receive(:invoke)
-
-        expect do
-          invoke3
-        end.to raise_error(::Simple::Service::ContextMissingError)
-      end
-    end
-
-    context "when context is set" do
-      it "calls Action#invoke with the right arguments" do
-        action = Simple::Service.actions(service)[:service1]
-        expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
-
-        invoke3
-      end
+      invoke3
     end
   end
 
@@ -100,26 +83,11 @@ describe "Simple::Service" do
         Simple::Service.invoke(service, :service1, args: ["my_a", "my_b"], flags: { "d" => "my_d" })
       end
 
-      context "when context is not set" do
-        let(:current_context) { false }
+      it "calls Action#invoke with the right arguments" do
+        action = Simple::Service.actions(service)[:service1]
+        expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
 
-        it "raises a ContextMissingError" do
-          action = Simple::Service.actions(service)[:service1]
-          expect(action).not_to receive(:invoke)
-
-          expect do
-            invoke
-          end.to raise_error(::Simple::Service::ContextMissingError)
-        end
-      end
-
-      context "when context is set" do
-        it "calls Action#invoke with the right arguments" do
-          action = Simple::Service.actions(service)[:service1]
-          expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
-
-          invoke
-        end
+        invoke
       end
     end
   end

@@ -6,15 +6,15 @@ require_relative "reloader_spec/example2"
 describe "Simple::Service::Reloader" do
   describe ".locate" do
     def locate(mod)
-      Simple::Service::Reloader.locate(mod)
+      Simple::Workflow::Reloader.locate(mod)
     end
     it "Returns all source files of a module" do
       root = Dir.getwd
 
       expected = [
-        "#{root}/lib/simple/service/reloader.rb"
+        "#{root}/lib/simple/workflow/reloader.rb"
       ]
-      expect(locate(Simple::Service::Reloader)).to contain_exactly(*expected)
+      expect(locate(Simple::Workflow::Reloader)).to contain_exactly(*expected)
 
       expected = [
         "#{__dir__}/reloader_spec/example1.rb",

@@ -1,6 +1,6 @@
-require "simple-immutable"
+require "simple/immutable"
 
-module Simple::Service
+module Simple::Workflow
   # A context object
   #
   # Each service executes with a current context. The system manages a stack of
@@ -42,7 +42,7 @@ module Simple::Service
       @reloaded_modules ||= []
       return if @reloaded_modules.include?(a_module)
 
-      ::Simple::Service::Reloader.reload(a_module)
+      ::Simple::Workflow::Reloader.reload(a_module)
       @reloaded_modules << a_module
       a_module
     end

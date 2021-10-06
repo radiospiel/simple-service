@@ -1,19 +1,19 @@
-# The Simple::Workflows::Reloader provides a way to locate and reload a module
-module Simple::Service::Reloader
+# The Simple::Workflow::Reloader provides a way to locate and reload a module
+module Simple::Workflow::Reloader
   extend self
 
   def reload(a_module)
     source_paths = locate(a_module)
     if source_paths.empty?
-      Simple::Service.logger&.warn "#{a_module}: cannot reload module: cannot find sources"
+      logger&.warn "#{a_module}: cannot reload module: cannot find sources"
       return
     end
 
     source_paths.each do |source_path|
-      Simple::Service.logger&.debug "#{a_module}: reload #{source_path}"
+      logger&.debug "#{a_module}: reload #{source_path}"
     end
 
-    Simple::Service.logger&.info "#{a_module}: reloaded module"
+    logger&.info "#{a_module}: reloaded module"
   end
 
   # This method tries to identify source files for a module's functions.
@@ -25,6 +25,10 @@ module Simple::Service::Reloader
   end
 
   private
+
+  def logger
+    ::Simple::Workflow.logger
+  end
 
   def locate_source_paths(a_module)
     source_paths = []
