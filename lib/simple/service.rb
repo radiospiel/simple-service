@@ -7,6 +7,7 @@ require "logger"
 require_relative "service/errors"
 require_relative "service/action"
 require_relative "service/context"
+require_relative "service/current_context"
 require_relative "service/version"
 
 if defined?(RSpec)

@@ -1,28 +1,3 @@
-module Simple::Service
-  # Returns the current context.
-  def self.context
-    Thread.current[:"Simple::Service.context"] || raise(ContextMissingError)
-  end
-
-  # yields a block with a given context, and restores the previous context
-  # object afterwards.
-  def self.with_context(ctx = nil, &block)
-    old_ctx = Thread.current[:"Simple::Service.context"]
-
-    if old_ctx && ctx.nil?
-      block.call
-    else
-      begin
-        Thread.current[:"Simple::Service.context"] = Context.new(ctx, old_ctx)
-
-        block.call
-      ensure
-        Thread.current[:"Simple::Service.context"] = old_ctx
-      end
-    end
-  end
-end
-
 require "simple-immutable"
 
 module Simple::Service
