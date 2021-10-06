@@ -33,23 +33,6 @@ module Simple::Service
       super(hsh || {})
     end
 
-    private
-
-    IDENTIFIER = "[a-z][a-z0-9_]*" # @private
-
-    def method_missing(sym, *args, &block)
-      raise ArgumentError, "#{self.class.name}##{sym}: Block given" if block
-      raise ArgumentError, "#{self.class.name}##{sym}: Extra args #{args.inspect}" unless args.empty?
-
-      if sym !~ /\A(#{IDENTIFIER})(\?)?\z/
-        raise ArgumentError, "#{self.class.name}: Invalid context key '#{sym}'"
-      end
-
-      # rubocop:disable Lint/OutOfRangeRegexpRef
-      fetch_attribute!($1, raise_when_missing: $2.nil?)
-      # rubocop:enable Lint/OutOfRangeRegexpRef
-    end
-
     def fetch_attribute!(sym, raise_when_missing:)
       unless @previous_context
         return super(sym, raise_when_missing: raise_when_missing)
@@ -74,6 +57,23 @@ module Simple::Service
 
       # Not in +self+, not in +previous_context+, and +raise_when_missing+ is true:
       raise(first_error)
+    end
+
+    private
+
+    IDENTIFIER = "[a-z][a-z0-9_]*" # @private
+
+    def method_missing(sym, *args, &block)
+      raise ArgumentError, "#{self.class.name}##{sym}: Block given" if block
+      raise ArgumentError, "#{self.class.name}##{sym}: Extra args #{args.inspect}" unless args.empty?
+
+      if sym !~ /\A(#{IDENTIFIER})(\?)?\z/
+        raise ArgumentError, "#{self.class.name}: Invalid context key '#{sym}'"
+      end
+
+      # rubocop:disable Lint/OutOfRangeRegexpRef
+      fetch_attribute!($1, raise_when_missing: $2.nil?)
+      # rubocop:enable Lint/OutOfRangeRegexpRef
     end
 
     def respond_to_missing?(sym, include_private = false)
