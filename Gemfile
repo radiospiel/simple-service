@@ -12,3 +12,5 @@ group :development, :test do
   gem 'simplecov', '~> 0'
   gem 'pry-byebug'
 end
+
+# gem "simple-immutable", "~> 1", path: "../simple-immutable"
