@@ -33,6 +33,20 @@ module Simple::Service
       super(hsh || {})
     end
 
+    def reload!(a_module)
+      if @previous_context
+        @previous_context.reload!(a_module)
+        return a_module
+      end
+
+      @reloaded_modules ||= []
+      return if @reloaded_modules.include?(a_module)
+
+      ::Simple::Service::Reloader.reload(a_module)
+      @reloaded_modules << a_module
+      a_module
+    end
+
     def fetch_attribute!(sym, raise_when_missing:)
       unless @previous_context
         return super(sym, raise_when_missing: raise_when_missing)
@@ -59,9 +73,17 @@ module Simple::Service
       raise(first_error)
     end
 
+    # def inspect
+    #   if @previous_context
+    #     "#{object_id} [" + @hsh.keys.map(&:inspect).join(", ") + "; #{@previous_context.inspect}]"
+    #   else
+    #     "#{object_id} [" + @hsh.keys.map(&:inspect).join(", ") + "]"
+    #   end
+    # end
+
     private
 
-    IDENTIFIER = "[a-z][a-z0-9_]*" # @private
+    IDENTIFIER = "[a-z_][a-z0-9_]*" # @private
 
     def method_missing(sym, *args, &block)
       raise ArgumentError, "#{self.class.name}##{sym}: Block given" if block
