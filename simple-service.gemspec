@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   # executables are used for development purposes only
   gem.executables   = []
 
-  gem.required_ruby_version = '~> 2.5'
+  gem.required_ruby_version = '>= 2.5'
 
   gem.add_dependency "expectation", "~> 1"
   gem.add_dependency "simple-immutable", "~> 1", ">= 1.1"
