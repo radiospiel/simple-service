@@ -81,6 +81,12 @@ module Simple::Service
       positionals = build_positional_arguments(args, flags)
       keywords = build_keyword_arguments(args.merge(flags))
 
+      # check for extra flags
+      extra_flags = (flags.keys - keywords.keys.map(&:to_s)).map { |flag| "--#{flag}" }
+      unless extra_flags.empty?
+        raise Simple::Service::ArgumentError, "Unknown flag(s): #{extra_flags.join(", ")}."
+      end
+
       service_instance = Object.new
       service_instance.extend service
 
