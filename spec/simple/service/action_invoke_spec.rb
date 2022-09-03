@@ -5,16 +5,6 @@ describe "Simple::Service.invoke" do
   let(:service) { InvokeTestService }
   let(:action)  { nil }
 
-  # a shortcut
-  def invoke!(args: {}, flags: {})
-    @actual = ::Simple::Service.invoke(service, action, args: args, flags: flags)
-    # rescue ::StandardError => e
-  rescue ::Simple::Service::ArgumentError => e
-    @actual = e
-  end
-
-  attr_reader :actual
-
   context "calling an action w/o parameters" do
     # reminder: this is the definition of no_params
     #
@@ -26,22 +16,23 @@ describe "Simple::Service.invoke" do
 
     context "calling without args" do
       it "runs the action" do
-        invoke!
+        actual = ::Simple::Service.invoke(service, action, args: {}, flags: {})
         expect(actual).to eq("service2 return")
       end
     end
 
     context "calling with extra named args" do
       it "ignores extra args" do
-        invoke!(args: { "foo" => "foo", "bar" => "bar" })
+        actual = ::Simple::Service.invoke(service, action, args: { "foo" => "foo", "bar" => "bar" }, flags: {})
         expect(actual).to eq("service2 return")
       end
     end
 
     context "calling with extra flags" do
-      it "ignores extra args" do
-        invoke!(flags: { "foo" => "foo", "bar" => "bar" })
-        expect(actual).to eq("service2 return")
+      it "raises an error" do
+        expect {
+          ::Simple::Service.invoke(service, action, args: {}, flags: { "foo" => "foo", "bar" => "bar" })
+        }.to raise_error(::Simple::Service::UnknownFlags)
       end
     end
   end
@@ -57,36 +48,36 @@ describe "Simple::Service.invoke" do
 
     context "without args" do
       it "raises MissingArguments" do
-        invoke!
-        expect(actual).to be_a(::Simple::Service::MissingArguments)
-        expect(actual.to_s).to match(/\ba, b\b/)
+        expect {
+          ::Simple::Service.invoke(service, action, args: {}, flags: {})
+        }.to raise_exception(::Simple::Service::MissingArguments, /\ba, b\b/)
       end
     end
 
     context "with the required number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar" }, flags: {})
         expect(actual).to eq(["foo", "bar", "speed-of-light", 2.781])
       end
     end
 
     context "with the required number of args and flags" do
-      it "merges flags and args to provide arguments" do
-        invoke!(args: { "a" => "foo" }, flags: { "b" => "bar" })
+      it "merges flags and args to provide variadic arguments" do
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo" }, flags: { "b" => "bar" })
         expect(actual).to eq(["foo", "bar", "speed-of-light", 2.781])
       end
     end
 
     context "with the allowed number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" }, flags: {})
         expect(actual).to eq(%w[foo bar baz number4])
       end
     end
 
     context "calling with extra named args" do
       it "ignores extra args" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4", "extra3" => 3 })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4", "extra3" => 3 }, flags: {})
         expect(actual).to eq(%w[foo bar baz number4])
       end
     end
@@ -103,29 +94,29 @@ describe "Simple::Service.invoke" do
 
     context "without args" do
       it "raises MissingArguments" do
-        invoke!
-        expect(actual).to be_a(::Simple::Service::MissingArguments)
-        expect(actual.to_s).to match(/\ba, b\b/)
+        expect {
+          ::Simple::Service.invoke(service, action, args: {}, flags: {})
+        }.to raise_error(::Simple::Service::MissingArguments, /\ba, b\b/)
       end
     end
 
     context "with the required number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar" }, flags: {})
         expect(actual).to eq(["foo", "bar", "speed-of-light", 2.781])
       end
     end
 
     context "with the allowed number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" }, flags: {})
         expect(actual).to eq(%w[foo bar baz number4])
       end
     end
 
     context "with extra named args" do
       it "ignores extra args" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "extra3" => 3 })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "extra3" => 3 }, flags: {})
         expect(actual).to eq(["foo", "bar", "baz", 2.781])
       end
     end
@@ -142,28 +133,29 @@ describe "Simple::Service.invoke" do
 
     context "without args" do
       it "raises MissingArguments" do
-        invoke!
-        expect(actual).to be_a(::Simple::Service::MissingArguments)
+        expect {
+          ::Simple::Service.invoke(service, action, args: {}, flags: {})
+        }.to raise_error(::Simple::Service::MissingArguments)
       end
     end
 
     context "with the required number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo" }, flags: {})
         expect(actual).to eq(["foo", "default-b", "speed-of-light", 2.781])
       end
     end
 
     context "with the allowed number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4" }, flags: {})
         expect(actual).to eq(%w[foo bar baz number4])
       end
     end
 
     context "with extra named args" do
       it "ignores extra args" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4", "extra3" => 3 })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "c" => "baz", "e" => "number4", "extra3" => 3 }, flags: {})
         expect(actual).to eq(["foo", "bar", "baz", "number4"])
       end
     end
@@ -180,33 +172,34 @@ describe "Simple::Service.invoke" do
 
     context "without args" do
       it "raises MissingArguments" do
-        invoke!
-        expect(actual).to be_a(::Simple::Service::MissingArguments)
+        expect {
+          ::Simple::Service.invoke(service, action, args: {}, flags: {})
+        }.to raise_error(::Simple::Service::MissingArguments)
       end
     end
 
     context "with the required number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo" }, flags: {})
         expect(actual).to eq(["foo", "queen bee", [], 2.781])
       end
     end
 
     context "with the allowed number of args" do
       it "runs" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "args" => ["baz"] }, flags: { "e" => "number4" })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "args" => ["baz"] }, flags: { "e" => "number4" })
         expect(actual).to eq(["foo", "bar", ["baz"], "number4"])
       end
     end
 
     context "with variadic args" do
       it "sends the variadic args from the args: parameter" do
-        invoke!(args: { "a" => "foo", "b" => "bar", "args" => ["baz", "extra"] }, flags: { "e" => "number4", "extra3" => 2 })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar", "args" => ["baz", "extra"] }, flags: { "e" => "number4" })
         expect(actual).to eq(["foo", "bar", ["baz", "extra"], "number4"])
       end
 
       it "sends the variadic args from the flags: parameter" do
-        invoke!(args: { "a" => "foo", "b" => "bar" }, flags: { "args" => ["baz", "extra"], "e" => "number4", "extra3" => 2 })
+        actual = ::Simple::Service.invoke(service, action, args: { "a" => "foo", "b" => "bar" }, flags: { "args" => ["baz", "extra"], "e" => "number4" })
         expect(actual).to eq(["foo", "bar", ["baz", "extra"], "number4"])
       end
     end
@@ -216,13 +209,13 @@ describe "Simple::Service.invoke" do
     it "raises ArgumentError" do
       hsh = { a: "foo", "b" => "KJH" }
 
-      expect do
-        invoke!(args: hsh)
-      end.to raise_error(Expectation::Matcher::Mismatch)
+      expect {
+        ::Simple::Service.invoke(service, action, args: hsh, flags: {})
+      }.to raise_error(Expectation::Matcher::Mismatch)
 
-      expect do
-        invoke!(flags: hsh)
-      end.to raise_error(Expectation::Matcher::Mismatch)
+      expect {
+        ::Simple::Service.invoke(service, action, args: {}, flags: hsh)
+      }.to raise_error(Expectation::Matcher::Mismatch)
     end
   end
 end

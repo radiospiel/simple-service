@@ -78,13 +78,21 @@ module Simple::Service
 
       verify_required_args!(args, flags)
 
+      args = args.dup
+      flags = flags.dup
+
       positionals = build_positional_arguments(args, flags)
+
+      if flags["args"].is_a?(Array)
+        positionals.concat flags.delete("args")
+      end
+
       keywords = build_keyword_arguments(args.merge(flags))
 
       # check for extra flags
-      extra_flags = (flags.keys - keywords.keys.map(&:to_s)).map { |flag| "--#{flag}" }
-      unless extra_flags.empty?
-        raise Simple::Service::ArgumentError, "Unknown flag(s): #{extra_flags.join(", ")}."
+      unknown_flags = (flags.keys - keywords.keys.map(&:to_s))
+      unless unknown_flags.empty?
+        raise Simple::Service::UnknownFlags.new(name, unknown_flags)
       end
 
       service_instance = Object.new
@@ -139,9 +147,9 @@ module Simple::Service
     def build_positional_arguments(args, flags)
       positionals = positional_names.each_with_object([]) do |parameter_name, ary|
         if args.key?(parameter_name)
-          ary << args[parameter_name]
+          ary << args.delete(parameter_name)
         elsif flags.key?(parameter_name)
-          ary << flags[parameter_name]
+          ary << flags.delete(parameter_name)
         end
       end
 
@@ -149,9 +157,9 @@ module Simple::Service
       # It is always optional - but if it exists it must be an Array.
       if variadic_parameter
         value = if args.key?(variadic_parameter.name)
-                  args[variadic_parameter.name]
+                  args.delete(variadic_parameter.name)
                 elsif flags.key?(variadic_parameter.name)
-                  flags[variadic_parameter.name]
+                  flags.delete(variadic_parameter.name)
                 end
 
         positionals.concat(value) if value

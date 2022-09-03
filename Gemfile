@@ -6,8 +6,8 @@ gemspec
 # --- Development and test dependencies ------------------------------
 
 group :development, :test do
-  gem 'rake', '~> 11'
-  gem 'rspec', '~> 3.7'
+  gem 'rake'
+  gem 'rspec'
   # gem 'rubocop', '~> 0.61.1'
   gem 'simplecov', '~> 0'
   gem 'pry-byebug'

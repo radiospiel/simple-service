@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
 module ::Simple::Service::Action::MethodReflection # @private
   extend self

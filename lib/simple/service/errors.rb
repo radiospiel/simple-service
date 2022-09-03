@@ -42,8 +42,22 @@ module Simple::Service
     end
 
     def to_s
-      str = @arguments.map(&:inspect).join(", ")
-      "#{action}: extra argument(s) #{str}"
+      str = arguments.map(&:inspect).join(", ")
+      "#{action}: extra argument(s): #{str}"
+    end
+  end
+
+  class UnknownFlags < ExtraArguments
+    attr_reader :flags
+
+    def initialize(action, flags)
+      @flags = flags
+      super(action, flags)
+    end
+
+    def to_s
+      inspected_flags = flags.map { |flag| "--#{flag}" }.join(", ")
+      "#{action}: unknown flag(s): #{inspected_flags}"
     end
   end
 

@@ -65,49 +65,34 @@ describe "Simple::Service" do
   end
 
   describe ".invoke3" do
-    def invoke3
-      Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
-    end
-
     it "calls Action#invoke with the right arguments" do
       action = Simple::Service.actions(service)[:service1]
       expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" })
 
-      invoke3
+      Simple::Service.invoke3(service, :service1, "my_a", "my_b", d: "my_d")
     end
   end
 
   describe ".invoke" do
     context "with a args array" do
-      def invoke
-        Simple::Service.invoke(service, :service1, args: ["my_a", "my_b"], flags: { "d" => "my_d" })
-      end
-
       it "calls Action#invoke with the right arguments" do
         action = Simple::Service.actions(service)[:service1]
         expect(action).to receive(:invoke).with(args: ["my_a", "my_b"], flags: { "d" => "my_d" }).and_call_original
 
-        invoke
+        Simple::Service.invoke(service, :service1, args: ["my_a", "my_b"], flags: { "d" => "my_d" })
       end
     end
   end
 
   describe "documentation example" do
-    def invoke(*args, **flags)
-      Simple::Service.invoke(SpecTestService, :foo, *args, **flags)
-    end
-
-    def invoke3(*args, **flags)
-      Simple::Service.invoke3(SpecTestService, :foo, *args, **flags)
-    end
-
     it "calls Action#invoke with the right arguments" do
       expected = ["bar-value", "baz-value"]
 
-      expect(invoke3("bar-value", baz: "baz-value")).to eq(expected)
-      expect(invoke3(bar: "bar-value", baz: "baz-value")).to eq(expected)
-      expect(invoke(args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
-      expect(invoke(args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
+      expect(Simple::Service.invoke(SpecTestService, :foo, args: ["bar-value"], flags: { "baz" => "baz-value" })).to eq(expected)
+      expect(Simple::Service.invoke(SpecTestService, :foo, args: { "bar" => "bar-value", "baz" => "baz-value" })).to eq(expected)
+
+      expect(Simple::Service.invoke3(SpecTestService, :foo, "bar-value", baz: "baz-value")).to eq(expected)
+      expect(Simple::Service.invoke3(SpecTestService, :foo, bar: "bar-value", baz: "baz-value")).to eq(expected)
     end
   end
 end
