@@ -47,11 +47,11 @@ describe "Simple::Service" do
 
     describe "Simple::Service::NoSuchAction" do
       it "does not inherit from Simple::Service::ArgumentError" do
-        expect(Simple::Service::NoSuchAction < Simple::Service::ArgumentError).to be_falsey
+        expect(Simple::Service::NoSuchActionError < Simple::Service::ArgumentError).to be_falsey
       end
 
       it "inherits from ArgumentError" do
-        expect(Simple::Service::NoSuchAction < ::ArgumentError).to eq true
+        expect(Simple::Service::NoSuchActionError < ::ArgumentError).to eq true
       end
     end
 
@@ -59,7 +59,7 @@ describe "Simple::Service" do
       it "raises a NoSuchAction error" do
         expect do
           Simple::Service.action(service, :no_such_service)
-        end.to raise_error(Simple::Service::NoSuchAction, /No such action :no_such_service/)
+        end.to raise_error(Simple::Service::NoSuchActionError, /No such action :no_such_service/)
       end
     end
   end

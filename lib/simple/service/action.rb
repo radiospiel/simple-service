@@ -92,7 +92,7 @@ module Simple::Service
       # check for extra flags
       unknown_flags = (flags.keys - keywords.keys.map(&:to_s))
       unless unknown_flags.empty?
-        raise Simple::Service::UnknownFlags.new(name, unknown_flags)
+        raise Simple::Service::UnknownFlagError.new(name, unknown_flags)
       end
 
       service_instance = Object.new
@@ -116,7 +116,7 @@ module Simple::Service
       missing_parameters = @required_names - args.keys - flags.keys
       return if missing_parameters.empty?
 
-      raise ::Simple::Service::MissingArguments.new(self, missing_parameters)
+      raise ::Simple::Service::MissingArgumentError.new(self, missing_parameters)
     end
 
     # Enumerating all parameters it puts all named parameters into a Hash
@@ -183,7 +183,7 @@ module Simple::Service
         ary = ary[0..positional_names.length]
 
         if !extra_arguments.empty? && !variadic_parameter
-          raise ::Simple::Service::ExtraArguments.new(self, extra_arguments)
+          raise ::Simple::Service::ExtraArgumentError.new(self, extra_arguments)
         end
 
         existing_positional_names = positional_names

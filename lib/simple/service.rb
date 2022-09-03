@@ -86,7 +86,7 @@ module Simple::Service
 
     actions = self.actions(service)
     actions[name] || begin
-      raise ::Simple::Service::NoSuchAction.new(service, name)
+      raise ::Simple::Service::NoSuchActionError.new(service, name)
     end
   end
 

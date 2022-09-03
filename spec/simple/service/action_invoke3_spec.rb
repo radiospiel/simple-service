@@ -36,7 +36,7 @@ describe "Simple::Service.invoke3" do
       it "raises ExtraArguments" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar")
-        }.to raise_error(::Simple::Service::ExtraArguments, /"foo", "bar"/)
+        }.to raise_error(::Simple::Service::ExtraArgumentError, /"foo", "bar"/)
       end
     end
 
@@ -44,7 +44,7 @@ describe "Simple::Service.invoke3" do
       it "raises an ExtraArguments error" do
         expect {
           ::Simple::Service.invoke3(service, action, foo: "foo", bar: "bar")
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
 
@@ -54,7 +54,7 @@ describe "Simple::Service.invoke3" do
           args = []
           args.push foo: "foo", bar: "bar"
           ::Simple::Service.invoke3(service, action, *args)
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
   end
@@ -72,7 +72,7 @@ describe "Simple::Service.invoke3" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke3(service, action)
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
@@ -94,7 +94,7 @@ describe "Simple::Service.invoke3" do
       it "raises ExtraArguments" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", "number4", "extra")
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
 
@@ -102,7 +102,7 @@ describe "Simple::Service.invoke3" do
       it "ignores extra args" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", extra3: 3)
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
 
@@ -111,7 +111,7 @@ describe "Simple::Service.invoke3" do
         expect {
           args = ["foo", "bar", "baz", extra3: 3]
           ::Simple::Service.invoke3(service, action, *args)
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
   end
@@ -129,7 +129,7 @@ describe "Simple::Service.invoke3" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke3(service, action)
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
@@ -151,7 +151,7 @@ describe "Simple::Service.invoke3" do
       it "runs" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", "number4", "extra")
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
 
@@ -177,7 +177,7 @@ describe "Simple::Service.invoke3" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke3(service, action)
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
@@ -199,7 +199,7 @@ describe "Simple::Service.invoke3" do
       it "raises an ExtraArguments error" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", "extra", e: "number4")
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
 
@@ -207,7 +207,7 @@ describe "Simple::Service.invoke3" do
       it "raises an ExtraArguments error" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", e: "number4", extra3: 3)
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
   end
@@ -225,7 +225,7 @@ describe "Simple::Service.invoke3" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke3(service, action)
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
@@ -254,7 +254,7 @@ describe "Simple::Service.invoke3" do
       it "raises an ExtraArguments error" do
         expect {
           ::Simple::Service.invoke3(service, action, "foo", "bar", "baz", e: "number4", extra3: 3)
-        }.to raise_error(::Simple::Service::ExtraArguments)
+        }.to raise_error(::Simple::Service::ExtraArgumentError)
       end
     end
   end

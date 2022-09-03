@@ -1,6 +1,6 @@
 module Simple::Service
   # Will be raised by ::Simple::Service.action.
-  class NoSuchAction < ::ArgumentError
+  class NoSuchActionError < ::ArgumentError
     attr_reader :service, :name
 
     def initialize(service, name)
@@ -18,7 +18,7 @@ module Simple::Service
   class ArgumentError < ::ArgumentError
   end
 
-  class MissingArguments < ArgumentError
+  class MissingArgumentError < ArgumentError
     attr_reader :action
     attr_reader :parameters
 
@@ -32,7 +32,7 @@ module Simple::Service
     end
   end
 
-  class ExtraArguments < ArgumentError
+  class ExtraArgumentError < ArgumentError
     attr_reader :action
     attr_reader :arguments
 
@@ -47,7 +47,7 @@ module Simple::Service
     end
   end
 
-  class UnknownFlags < ExtraArguments
+  class UnknownFlagError < ExtraArgumentError
     attr_reader :flags
 
     def initialize(action, flags)

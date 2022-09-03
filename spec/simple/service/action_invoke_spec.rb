@@ -32,7 +32,7 @@ describe "Simple::Service.invoke" do
       it "raises an error" do
         expect {
           ::Simple::Service.invoke(service, action, args: {}, flags: { "foo" => "foo", "bar" => "bar" })
-        }.to raise_error(::Simple::Service::UnknownFlags)
+        }.to raise_error(::Simple::Service::UnknownFlagError)
       end
     end
   end
@@ -50,7 +50,7 @@ describe "Simple::Service.invoke" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke(service, action, args: {}, flags: {})
-        }.to raise_exception(::Simple::Service::MissingArguments, /\ba, b\b/)
+        }.to raise_exception(::Simple::Service::MissingArgumentError, /\ba, b\b/)
       end
     end
 
@@ -96,7 +96,7 @@ describe "Simple::Service.invoke" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke(service, action, args: {}, flags: {})
-        }.to raise_error(::Simple::Service::MissingArguments, /\ba, b\b/)
+        }.to raise_error(::Simple::Service::MissingArgumentError, /\ba, b\b/)
       end
     end
 
@@ -135,7 +135,7 @@ describe "Simple::Service.invoke" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke(service, action, args: {}, flags: {})
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
@@ -174,7 +174,7 @@ describe "Simple::Service.invoke" do
       it "raises MissingArguments" do
         expect {
           ::Simple::Service.invoke(service, action, args: {}, flags: {})
-        }.to raise_error(::Simple::Service::MissingArguments)
+        }.to raise_error(::Simple::Service::MissingArgumentError)
       end
     end
 
