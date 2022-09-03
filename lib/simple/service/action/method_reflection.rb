@@ -29,13 +29,14 @@ module ::Simple::Service::Action::MethodReflection # @private
 
     fake_recipient = Object.new.extend(service)
     fake_call_args = minimal_arguments(method)
+    fake_call_kwargs = fake_call_args.last.is_a?(Hash) ? fake_call_args.pop : {}
 
     trace_point = TracePoint.trace(:call) do |tp|
       throw :received_fake_call, tp.binding if tp.defined_class == service && tp.method_id == method_id
     end
 
     bnd = catch(:received_fake_call) do
-      fake_recipient.send(method_id, *fake_call_args)
+      fake_recipient.send(method_id, *fake_call_args, **fake_call_kwargs)
     end
 
     trace_point.disable

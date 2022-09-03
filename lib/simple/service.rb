@@ -98,6 +98,14 @@ module Simple::Service
   # As the main purpose of this module is to call services with outside data,
   # the +.invoke+ action is usually preferred.
   def self.invoke3(service, name, *args, **flags)
+    # The following checks if flags is empty. This might be intentional, but might also mean that
+    # the caller is sending in kwargs as last arguments of the args array.
+    #
+    # This is supported in 2.7.*, but no longer works with ruby 3.
+    if flags.empty? && args.last.is_a?(Hash)
+      flags = args.pop
+    end
+
     flags = flags.transform_keys(&:to_s)
     invoke service, name, args: args, flags: flags
   end
